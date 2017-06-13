@@ -1,0 +1,52 @@
+<html>
+
+<head>
+  <title>The Socket Server</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      var ws = new WebSocket("ws://localhost:9060"); // 192.168.1.146
+
+      $("#btnsend").on('click', function() {
+        var message = $("#message").val();
+        ws.send(JSON.stringify({
+          type: "ping"
+        }));
+        console.log('Sending message: \"' + message + '\"');
+      });
+
+      ws.onmessage = function(message) {
+        console.log('Recieving message: \"' + message.data + '\"');
+
+        var json = JSON.parse(message.data);
+
+        if ("type" in json) {
+          switch (json.type) {
+            case "pong":
+              console.log("Pong");
+              break;
+          }
+        } else {
+          console.log("Error: No \"type\" field found in json object")
+        }
+      };
+
+      ws.onclose = function(evt) {
+        console.log('Conenction Closed (' + evt.code + ')');
+      };
+
+      ws.onerror = function(evt) {
+        console.log('Error Occured (' + evt.data + ')');
+      };
+    });
+  </script>
+</head>
+
+<body>
+  <h1>The Communication with Socket</h1> Message:
+  <input type='text' id="message">
+  <br/>
+  <input type="button" id="btnsend" value="Send" />
+</body>
+
+</html>
