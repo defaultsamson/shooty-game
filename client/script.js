@@ -45,7 +45,7 @@ function createClient() {
     console.log('Sending message: \"' + message + '\"');
   });*/
 
-  ws.onmessage = function(message) {
+  ws.onmessage = function (message) {
     console.log('Recieving message: \"' + message.data + '\"');
 
     var json = JSON.parse(message.data);
@@ -61,11 +61,11 @@ function createClient() {
     }
   };
 
-  ws.onclose = function(evt) {
+  ws.onclose = function (evt) {
     console.log('Conenction Closed (' + evt.code + ')');
   };
 
-  ws.onerror = function(evt) {
+  ws.onerror = function (evt) {
     console.log('Error Occured (' + evt.code + ')');
     resetOnlineGame();
     displayError();
@@ -102,7 +102,7 @@ function returnToHostMenu() {
   }, {
     duration: 800,
     queue: false
-  }).fadeIn(fade, function() {
+  }).fadeIn(fade, function () {
     $("#hostUserInput").focus();
   });
   $("#pEnterText").stop().animate({
@@ -172,7 +172,7 @@ function returnMenu() {
   }
 }
 
-$(document).ready('input').keydown(function(e) {
+$(document).ready('input').keydown(function (e) {
 
   if (!preventKeyPress) {
     if (isMainMenu) {
@@ -271,7 +271,7 @@ function gotoHostMenu() {
   isOnlineMenu = false;
 
   $("#pEnterText").stop().fadeIn(fade);
-  $("#hostForm").fadeIn(fade, function() {
+  $("#hostForm").fadeIn(fade, function () {
     $("#hostUserInput").focus();
   });
   $("#hostUserInput").val(username);
@@ -289,7 +289,7 @@ function gotoJoinMenu() {
   isOnlineMenu = false;
 
   $("#pEnterText").stop().fadeIn(fade);
-  $("#joinForm").fadeIn(fade, function() {
+  $("#joinForm").fadeIn(fade, function () {
     $("#joinUserInput").focus();
   });
   $("#joinUserInput").val(username);
@@ -304,7 +304,7 @@ function gotoJoinMenu() {
 
 // Lets jquery objects get shoken from side to side
 // dir: should be -1 or 1 to specify the direction of the shake
-jQuery.fn.shake = function(dir) {
+jQuery.fn.shake = function (dir) {
   var pos = $(this).position();
   $(this).animate({
     left: pos.left - (18 * dir)
@@ -320,23 +320,23 @@ jQuery.fn.shake = function(dir) {
 
 var hasFocus = true;
 
-$(window).focus(function() {
+$(window).focus(function () {
   hasFocus = true;
 });
 
-$(window).blur(function() {
+$(window).blur(function () {
   hasFocus = false;
 });
 
-var createAllErrors = function() {
+var createAllErrors = function () {
   var form = $(this),
     errorList = $("ul.errorMessages", form);
 
-  var showAllErrorMessages = function() {
+  var showAllErrorMessages = function () {
     errorList.empty();
 
     // Find all invalid fields within the form.
-    var invalidFields = form.find(":invalid").each(function(index, node) {
+    var invalidFields = form.find(":invalid").each(function (index, node) {
 
       // Find the field's corresponding label
       var label = $("label[for=" + node.id + "] "),
@@ -350,7 +350,7 @@ var createAllErrors = function() {
   };
 
   // Support Safari
-  form.on("submit", function(event) {
+  form.on("submit", function (event) {
     if (this.checkValidity && !this.checkValidity()) {
       $(this).find(":invalid").first().focus();
       event.preventDefault();
@@ -360,7 +360,7 @@ var createAllErrors = function() {
   $("input[type=submit], button:not([type=button])", form)
     .on("click", showAllErrorMessages);
 
-  $("input", form).on("keypress", function(event) {
+  $("input", form).on("keypress", function (event) {
     var type = $(this).attr("type");
     if (/date|email|month|number|search|tel|text|time|url|week/.test(type) &&
       event.keyCode == 13) {
@@ -372,7 +372,7 @@ var createAllErrors = function() {
 $("form").each(createAllErrors);
 
 // Upon loading, start the game
-$(document).ready(function() {
+$(document).ready(function () {
   console.log('Game Loaded');
 
   $("#hostForm").hide();
@@ -464,7 +464,7 @@ function gotoOnlineGameMenu() {
   isOnlineMenu = true;
   preventKeyPress = true;
 
-  function allowKeys(){
+  function allowKeys() {
     preventKeyPress = false;
   }
   // Gives the player half the transition time to prevent accidental keypresses
@@ -573,17 +573,17 @@ function addItemToList(listID, str) {
 function keyboardAnimation() {
   $("#kLeft").css("left", "-110%").show().animate({
     left: 0
-  }, 1000, function() {
+  }, 1000, function () {
     $('#kLeft').slideToggle();
   });
   $("#kRight").css("right", "-110%").show().animate({
     right: 0
-  }, 1000, function() {
+  }, 1000, function () {
     $('#kRight').slideToggle();
   });
   $("#kDown").css("top", "110%").show().animate({
     top: "35%"
-  }, 1000, function() {
+  }, 1000, function () {
     $('#kDown').slideToggle(1200);
   });
 }
@@ -631,7 +631,7 @@ function focusLists() {
 
   $('#pShoot').animate({
     top: "110%"
-  }, 1000, function() {
+  }, 1000, function () {
     $("#pShoot").css("top", "45%");
   });
   $("#pShoot").fadeOut({

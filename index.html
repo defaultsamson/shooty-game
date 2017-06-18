@@ -4,7 +4,7 @@
 <head>
 
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="game/script.js"></script>
+  <script src="client/script.js"></script>
 
   <link href='https://fonts.googleapis.com/css?family=Arvo' rel='stylesheet'>
   <style>
@@ -69,15 +69,15 @@
 
 <body>
   <div id="kLeftMenu" class="pixelated" style="top: 50%;">
-    <img src="game/keyboard_left.png" alt="Keyboard" style="width:px;height:130px;">
+    <img src="client/keyboard_left.png" alt="Keyboard" style="width:px;height:130px;">
   </div>
 
   <div id="kRightMenu" class="pixelated" style="top: 50%;">
-    <img src="game/keyboard_right.png" alt="Keyboard" style="width:px;height:130px;">
+    <img src="client/keyboard_right.png" alt="Keyboard" style="width:px;height:130px;">
   </div>
 
   <div id="kDownMenu" class="pixelated" style="top: 50%;">
-    <img src="game/keyboard_space.png" alt="Keyboard" style="width:px;height:130px;">
+    <img src="client/keyboard_space.png" alt="Keyboard" style="width:px;height:130px;">
   </div>
 
   <p id="pConnectingText" class="ready" style="top: 40%;">Connecting...</p>
@@ -94,15 +94,15 @@
   <p id="pOfflineDesc" class="ready" style="top: 78%; left: 420px; font-size: 30px;">Challenge irl friends<br>on your keyboard</p>
 
   <div id="kLeft" class="pixelated" style="left: -110%;">
-    <img src="game/keyboard_left.png" alt="Keyboard" style="width:px;height:228px;">
+    <img src="client/keyboard_left.png" alt="Keyboard" style="width:px;height:228px;">
   </div>
 
   <div id="kRight" class="pixelated" style="right: -110%;">
-    <img src="game/keyboard_right.png" alt="Keyboard" style="width:px;height:228px;">
+    <img src="client/keyboard_right.png" alt="Keyboard" style="width:px;height:228px;">
   </div>
 
   <div id="kDown" class="pixelated" style="top: 110%">
-    <img src="game/keyboard_space.png" alt="Keyboard" style="width:px;height:228px;">
+    <img src="client/keyboard_space.png" alt="Keyboard" style="width:px;height:228px;">
   </div>
 
   <p id="pHelp" class="ready" style="top: 8%;"><br>Press any key to shoot,<br>Fastest shooter wins,<br>Shoot too early and you're out!</p>
@@ -116,19 +116,22 @@
   <div id="hostForm" class="textInput" style="top:40%">
     <form action="#" method="get">
       <p class="ready" style="display:inline;top:0%">Username</p><br>
-      <input id="hostUserInput" type="text" name="username" pattern="[A-Za-z0-9]{3,20}" maxlength="20" title="3-20 characters, letters and numbers only" required style="text-align: center;"></input><br>
+      <input id="hostUserInput" type="text" name="username" pattern="[A-Za-z0-9]{3,20}" maxlength="20" title="3-20 characters, letters and numbers only"
+        required style="text-align: center;"></input><br>
     </form>
   </div>
 
   <div id="joinForm" class="textInput" style="top:33%">
     <form action="#" method="get">
       <p id="readyUsernameTitle" class="ready" style="display:inline;top:0%">Username</p><br>
-      <input id="joinUserInput" type="text" name="user" pattern="[A-Za-z0-9]{3,20}" maxlength="20" title="3-20 characters, letters and numbers only" required style="text-align: center;" /></input><br>
+      <input id="joinUserInput" type="text" name="user" pattern="[A-Za-z0-9]{3,20}" maxlength="20" title="3-20 characters, letters and numbers only"
+        required style="text-align: center;" /></input><br>
     </form>
 
     <form action="#" method="get">
       <p id="readyKeyTitle" class="ready" style="display:inline;top:52%">Game Key</p><br>
-      <input id="joinKeyInput" type="text" name="key" pattern="[A-Za-z0-9]{6}" maxlength="6" title="Six characters, letters and numbers only" required style="text-align: center;"></input><br>
+      <input id="joinKeyInput" type="text" name="key" pattern="[A-Za-z0-9]{6}" maxlength="6" title="Six characters, letters and numbers only"
+        required style="text-align: center;"></input><br>
     </form>
   </div>
 </body>
