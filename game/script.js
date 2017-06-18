@@ -289,7 +289,9 @@ function gotoJoinMenu() {
   isOnlineMenu = false;
 
   $("#pEnterText").stop().fadeIn(fade);
-  $("#joinForm").fadeIn(fade);
+  $("#joinForm").fadeIn(fade, function() {
+    $("#joinUserInput").focus();
+  });
   $("#joinUserInput").val(username);
 
   $("#kLeftMenu").fadeOut(fade);
