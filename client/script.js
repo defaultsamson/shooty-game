@@ -61,11 +61,12 @@ function createClient() {
           console.log("Pong")
           break
         case "lobby":
-        username = json.username
-        gameID = json.gameID
-        isHosting = json.isHosting
+          username = json.username
+          gameID = json.gameID
+          isHosting = json.isHosting
 
-        
+
+
           break
       }
     } else {
@@ -121,9 +122,9 @@ function returnToOnlineMenu() {
   $("#kLeftMenu").finish().fadeIn(fade);
   $("#kRightMenu").finish().fadeIn(fade);
   $("#kDownMenu").finish().fadeIn(fade);
-  $("#pJoist").stop().fadeIn(fade);
-  $("#pJon").stop().fadeIn(fade);
-  $("#pHoinRandom").stop().fadeIn(fade);
+  $("#pJoin").stop().fadeIn(fade);
+  $("#pHost").stop().fadeIn(fade);
+  $("#pJoinRandom").stop().fadeIn(fade);
   $("#pEnterText").finish().fadeOut(fade);
 }
 
@@ -183,6 +184,7 @@ function returnMenu() {
       duration: 400,
       queue: false
     })
+    $("#dGithub").stop().fadeIn(fade)
     $("#pOffline").stop().fadeIn(fade)
     $("#pMenuMultiplayer").stop().fadeIn(fade)
     $("#pOnline").stop().fadeIn(fade)
@@ -366,6 +368,7 @@ $(document).ready(function () {
 
   $("#hostForm").hide()
   $("#joinForm").hide()
+  $("#dGithub").hide();
 
   mainMenuEntranceAnimation()
 })
@@ -428,6 +431,7 @@ function gotoLocalGame() {
   $("#pOnline").stop().fadeOut(fade);
   $("#pOnlineDesc").stop().fadeOut(fade);
   $("#pOfflineDesc").stop().fadeOut(fade);
+  $("#dGithub").stop().fadeOut(fade);
   $("#kLeftMenu").fadeOut({
     duration: fade,
     queue: false
@@ -454,6 +458,7 @@ function gotoOnlineGameMenu() {
   // Gives the player half the transition time to prevent accidental keypresses
   setTimeout(allowKeys, fade / 2);
 
+  $("#dGithub").stop().fadeOut(fade);
   $("#pOffline").stop().fadeOut(fade);
   $("#pMenuMultiplayer").stop().fadeOut(fade);
   $("#pOnline").stop().fadeOut(fade);
@@ -508,8 +513,9 @@ function mainMenuEntranceAnimation() {
         duration: 800,
         queue: false
       })
-      $("#pOnlineDesc").fadeIn(800);
-      $("#pOfflineDesc").fadeIn(800);
+      $("#dGithub").fadeIn(800)
+      $("#pOnlineDesc").fadeIn(800)
+      $("#pOfflineDesc").fadeIn(800)
 
       function spaceAnim() {
         if (isMainMenu) {

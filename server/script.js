@@ -48,7 +48,8 @@ ws.on('connection', function (so) {
               var id = generateID()
               clientEntry.gameID = id
               games.push({
-                id: id
+                id: id,
+                isInGame: false
               })
 
               console.log("Creating game with ID: " + id)
