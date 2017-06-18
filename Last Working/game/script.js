@@ -174,91 +174,87 @@ function returnMenu() {
 
 $(document).ready('input').keydown(function(e) {
 
-  if (!preventKeyPress) {
-    if (isMainMenu) {
-      if (isLeft(e.keyCode)) {
-        gotoOnlineGameMenu();
-      } else if (isRight(e.keyCode)) {
-        gotoLocalGame();
-      }
-    } else if (isShowingError) {
-      if (e.keyCode == esc) {
-        returnMenu();
-      }
-    } else if (isOnlineMenu) {
-      if (isLeft(e.keyCode)) {
-        gotoJoinMenu();
-      } else if (isRight(e.keyCode)) {
-        gotoHostMenu();
-      } else if (e.keyCode == space) {
+  if (isMainMenu) {
+    if (isLeft(e.keyCode)) {
+      gotoOnlineGameMenu();
+    } else if (isRight(e.keyCode)) {
+      gotoLocalGame();
+    }
+  } else if (isShowingError) {
+    if (e.keyCode == esc) {
+      returnMenu();
+    }
+  } else if (isOnlineMenu) {
+    if (isLeft(e.keyCode)) {
+      gotoJoinMenu();
+    } else if (isRight(e.keyCode)) {
+      gotoHostMenu();
+    } else if (e.keyCode == space) {
 
-      } else if (e.keyCode == esc) {
-        returnMenu();
+    } else if (e.keyCode == esc) {
+      returnMenu();
+    }
+  } else if (isInHostMenu) {
+    username = $("#hostUserInput").val();
+
+    if (e.keyCode == space) {
+
+    } else if (e.keyCode == esc) {
+      returnMenu();
+    } else if (e.keyCode == enter) {
+      // If the username input is filled out properly
+      if (/^([A-Za-z0-9]{3,20})$/.test(username)) {
+        createGame();
+        return false;
       }
-    } else if (isInHostMenu) {
-      username = $("#hostUserInput").val();
+    }
+  } else if (isInJoinMenu) {
+    username = $("#joinUserInput").val();
 
-      if (e.keyCode == space) {
+    if (e.keyCode == space) {
 
-      } else if (e.keyCode == esc) {
-        returnMenu();
-      } else if (e.keyCode == enter) {
-        // If the username input is filled out properly
-        if (/^([A-Za-z0-9]{3,20})$/.test(username)) {
-          createGame();
-          return false;
-        }
+    } else if (e.keyCode == esc) {
+      returnMenu();
+    } else if (e.keyCode == enter) {
+
+      if (e.target.id === "joinKeyInput" && /^([A-Za-z0-9]{6})$/.test($("#joinKeyInput").val())) {
+        return false;
+      } else if (e.target.id === "joinUserInput" && /^([A-Za-z0-9]{3,20})$/.test(username)) {
+        return false;
       }
-    } else if (isInJoinMenu) {
-      username = $("#joinUserInput").val();
+    }
+  } else if (isInGameCreationWait) {
+    if (e.keyCode == esc) {
+      // TODO returnMenu();
+    }
+  } else if (isInLocalGame) {
+    if (e.keyCode == esc && !inGame) {
+      returnMenu();
+    } else if (e.keyCode == space && !inGame) {
+      resetGame();
+      startGame();
+    }
 
-      if (e.keyCode == space) {
-
-      } else if (e.keyCode == esc) {
-        returnMenu();
-      } else if (e.keyCode == enter) {
-
-        if (e.target.id === "joinKeyInput" && /^([A-Za-z0-9]{6})$/.test($("#joinKeyInput").val())) {
-          return false;
-        } else if (e.target.id === "joinUserInput" && /^([A-Za-z0-9]{3,20})$/.test(username)) {
-          return false;
-        }
-      }
-    } else if (isInGameCreationWait) {
-      if (e.keyCode == esc) {
-        // TODO returnMenu();
-      }
-    } else if (isInLocalGame) {
-      if (e.keyCode == esc && !inGame) {
-        returnMenu();
-      } else if (e.keyCode == space && !inGame) {
-        resetGame();
-        startGame();
-      }
-
-      // If the players can shoot
-      if (canShoot) {
-        // If the key is valid (and isn't space)
-        if (e.keyCode != space && e.keyCode != esc && $.inArray(e.keyCode,
-            downKeys) == -1) {
-          downKeys.push(e.keyCode);
-          // gets the name of the key
-          var str = String.fromCharCode(e.keyCode);
-          // If they shot too early
-          if (preShot) {
-            addItemToList("lFailList", str);
-          } else { // Else, they shot in time
-            addItemToList("lWinList", str + ": " + (Date.now() - shootTime) +
-              " ms");
-            winCount++;
-          }
+    // If the players can shoot
+    if (canShoot) {
+      // If the key is valid (and isn't space)
+      if (e.keyCode != space && e.keyCode != esc && $.inArray(e.keyCode,
+          downKeys) == -1) {
+        downKeys.push(e.keyCode);
+        // gets the name of the key
+        var str = String.fromCharCode(e.keyCode);
+        // If they shot too early
+        if (preShot) {
+          addItemToList("lFailList", str);
+        } else { // Else, they shot in time
+          addItemToList("lWinList", str + ": " + (Date.now() - shootTime) +
+            " ms");
+          winCount++;
         }
       }
     }
   }
 });
-
-var preventKeyPress = false;
 
 
 
@@ -460,13 +456,6 @@ function gotoLocalGame() {
 function gotoOnlineGameMenu() {
   isMainMenu = false;
   isOnlineMenu = true;
-  preventKeyPress = true;
-
-  function allowKeys(){
-    preventKeyPress = false;
-  }
-  // Gives the player half the transition time to prevent accidental keypresses
-  setTimeout(allowKeys, fade / 2);
 
   $("#pOffline").stop().fadeOut(fade);
   $("#pMenuMultiplayer").stop().fadeOut(fade);
