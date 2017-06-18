@@ -1,41 +1,43 @@
-var username = "";
+var username = ""
+var gameID = ""
+var isHosting = false
 
-var isMainMenu = true;
-var isOnlineMenu = false;
-var isInHostMenu = false;
-var isInGameCreationWait = false;
-var isInJoinMenu = false;
-var isInLocalGame = false;
-var isShowingError = false;
+var isMainMenu = true
+var isOnlineMenu = false
+var isInHostMenu = false
+var isInGameCreationWait = false
+var isInJoinMenu = false
+var isInLocalGame = false
+var isShowingError = false
 
-var ws;
-const serverIP = "localhost:9060"; // 192.168.1.146
+var ws
+const serverIP = "localhost:9060" // 192.168.1.146
 
 function createGame() {
-  isInGameCreationWait = true;
-  isInHostMenu = false;
+  isInGameCreationWait = true
+  isInHostMenu = false
 
-  $("#hostUserInput").blur(); // Unfocuses the text field
+  $("#hostUserInput").blur() // Unfocuses the text field
   $("#hostForm").stop().animate({
     top: "110%"
   }, {
     duration: 800,
     queue: false
-  }).fadeOut(fade);
+  }).fadeOut(fade)
   $("#pEnterText").stop().animate({
     top: "-30%"
   }, {
     duration: 800,
     queue: false
-  }).fadeOut(fade);
+  }).fadeOut(fade)
 
-  $("#pConnectingText").fadeIn(fade);
+  $("#pConnectingText").fadeIn(fade)
 
-  createClient();
+  createClient()
 }
 
 function createClient() {
-  ws = new WebSocket("ws://" + serverIP);
+  ws = new WebSocket("ws://" + serverIP)
 
   /*$("#btnsend").on('click', function() {
     var message = $("#message").val();
@@ -45,39 +47,68 @@ function createClient() {
     console.log('Sending message: \"' + message + '\"');
   });*/
 
+  console.log('client created')
+
   ws.onmessage = function (message) {
-    console.log('Recieving message: \"' + message.data + '\"');
+    console.log('Recieving message: \"' + message.data + '\"')
 
-    var json = JSON.parse(message.data);
+    var json = JSON.parse(message.data)
 
+    // Switch packet types
     if ("type" in json) {
       switch (json.type) {
         case "pong":
-          console.log("Pong");
-          break;
+          console.log("Pong")
+          break
+        case "lobby":
+        username = json.username
+        gameID = json.gameID
+        isHosting = json.isHosting
+
+        
+          break
       }
     } else {
       console.log("Error: No \"type\" field found in json object")
     }
-  };
+  }
+
+  ws.onopen = function (evt) {
+    console.log('Connection opened: ' + evt);
+
+    ws.send(JSON.stringify({
+      type: "login",
+      username: username,
+      gameID: gameID,
+      isHosting: isInGameCreationWait
+    }))
+  }
 
   ws.onclose = function (evt) {
-    console.log('Conenction Closed (' + evt.code + ')');
-  };
+    console.log('Conenction Closed (' + evt.code + ')')
+    connectionClosed()
+  }
 
   ws.onerror = function (evt) {
-    console.log('Error Occured (' + evt.code + ')');
-    resetOnlineGame();
-    displayError();
-  };
+    console.log('Error Occured (' + evt.code + ')')
+    resetOnlineGame()
+    displayError()
+  }
+}
+
+function connectionClosed() {
+  if (!isShowingError) {
+    $("pConnectionClosed").fadeIn(fade)
+    $("#pEscText").fadeIn(fade)
+  }
 }
 
 function displayError() {
-  isShowingError = true;
+  isShowingError = true
 
-  $("#pErrorText").fadeIn(fade);
-  $("#pEscText").fadeIn(fade);
-  $("#pConnectingText").stop().fadeOut(fade);
+  $("#pErrorText").fadeIn(fade)
+  $("#pEscText").fadeIn(fade)
+  $("#pConnectingText").stop().fadeOut(fade)
 }
 
 function resetOnlineGame() {
@@ -85,14 +116,14 @@ function resetOnlineGame() {
 }
 
 function returnToOnlineMenu() {
-  isOnlineMenu = true;
+  isOnlineMenu = true
 
   $("#kLeftMenu").finish().fadeIn(fade);
   $("#kRightMenu").finish().fadeIn(fade);
   $("#kDownMenu").finish().fadeIn(fade);
-  $("#pJoin").stop().fadeIn(fade);
-  $("#pHost").stop().fadeIn(fade);
-  $("#pJoinRandom").stop().fadeIn(fade);
+  $("#pJoist").stop().fadeIn(fade);
+  $("#pJon").stop().fadeIn(fade);
+  $("#pHoinRandom").stop().fadeIn(fade);
   $("#pEnterText").finish().fadeOut(fade);
 }
 
@@ -103,72 +134,72 @@ function returnToHostMenu() {
     duration: 800,
     queue: false
   }).fadeIn(fade, function () {
-    $("#hostUserInput").focus();
-  });
+    $("#hostUserInput").focus()
+  })
   $("#pEnterText").stop().animate({
     top: "18.5%"
   }, {
     duration: 800,
     queue: false
-  }).fadeIn(fade);
+  }).fadeIn(fade)
 
-  $("#pConnectingText").fadeOut(fade);
+  $("#pConnectingText").fadeOut(fade)
 }
 
 function returnMenu() {
   if (isShowingError) {
-    $("#pErrorText").fadeOut(fade);
-    isShowingError = false;
+    $("#pErrorText").fadeOut(fade)
+    isShowingError = false
     if (isInGameCreationWait) {
-      isInGameCreationWait = false;
-      isInHostMenu = true;
-      returnToHostMenu();
+      isInGameCreationWait = false
+      isInHostMenu = true
+      returnToHostMenu()
     }
   } else if (isInGameCreationWait) {
-    isInGameCreationWait = false;
-    isInHostMenu = true;
-    returnToHostMenu();
+    isInGameCreationWait = false
+    isInHostMenu = true
+    returnToHostMenu()
   } else if (isInJoinMenu) {
-    isInJoinMenu = false;
-    returnToOnlineMenu();
-    $("#joinUserInput").blur(); // Unfocuses the text field
-    $("#joinKeyInput").blur(); // Unfocuses the text field
-    $("#joinForm").stop().fadeOut(fade);
+    isInJoinMenu = false
+    returnToOnlineMenu()
+    $("#joinUserInput").blur() // Unfocuses the text field
+    $("#joinKeyInput").blur() // Unfocuses the text field
+    $("#joinForm").stop().fadeOut(fade)
   } else if (isInHostMenu) {
-    isInHostMenu = false;
-    returnToOnlineMenu();
-    $("#hostUserInput").blur(); // Unfocuses the text field
-    $("#hostForm").finish().fadeOut(fade);
+    isInHostMenu = false
+    returnToOnlineMenu()
+    $("#hostUserInput").blur() // Unfocuses the text field
+    $("#hostForm").finish().fadeOut(fade)
   } else if (isOnlineMenu) {
     $("#kLeftMenu").animate({
       top: "50%"
-    }, 800);
+    }, 800)
     $("#kRightMenu").animate({
       top: "50%"
-    }, 800);
+    }, 800)
     $("#kDownMenu").stop().animate({
       top: "110%"
     }, 800).fadeOut({
       duration: 400,
       queue: false
-    });
-    $("#pOffline").stop().fadeIn(fade);
-    $("#pMenuMultiplayer").stop().fadeIn(fade);
-    $("#pOnline").stop().fadeIn(fade);
-    $("#pOnlineDesc").stop().fadeIn(fade);
-    $("#pOfflineDesc").stop().fadeIn(fade);
-    $("#pJoin").stop().fadeOut(fade);
-    $("#pHost").stop().fadeOut(fade);
-    $("#pJoinRandom").stop().fadeOut(fade);
-    $("#pEscText").stop().fadeOut(fade);
+    })
+    $("#pOffline").stop().fadeIn(fade)
+    $("#pMenuMultiplayer").stop().fadeIn(fade)
+    $("#pOnline").stop().fadeIn(fade)
+    $("#pOnlineDesc").stop().fadeIn(fade)
+    $("#pOfflineDesc").stop().fadeIn(fade)
+    $("#pJoin").stop().fadeOut(fade)
+    $("#pHost").stop().fadeOut(fade)
+    $("#pJoinRandom").stop().fadeOut(fade)
+    $("#pEscText").stop().fadeOut(fade)
 
-    isOnlineMenu = false;
-    isMainMenu = true;
+    isOnlineMenu = false
+    isMainMenu = true
   } else if (isInLocalGame) {
-    resetGame();
-    mainMenuEntranceAnimation();
-    isInLocalGame = false;
-    isMainMenu = true;
+    resetGame()
+    mainMenuEntranceAnimation()
+    isInLocalGame = false
+    isMainMenu = true
   }
 }
 
@@ -177,63 +208,65 @@ $(document).ready('input').keydown(function (e) {
   if (!preventKeyPress) {
     if (isMainMenu) {
       if (isLeft(e.keyCode)) {
-        gotoOnlineGameMenu();
+        gotoOnlineGameMenu()
       } else if (isRight(e.keyCode)) {
-        gotoLocalGame();
+        gotoLocalGame()
       }
     } else if (isShowingError) {
       if (e.keyCode == esc) {
-        returnMenu();
+        returnMenu()
       }
     } else if (isOnlineMenu) {
       if (isLeft(e.keyCode)) {
-        gotoJoinMenu();
+        gotoJoinMenu()
       } else if (isRight(e.keyCode)) {
-        gotoHostMenu();
+        gotoHostMenu()
       } else if (e.keyCode == space) {
 
       } else if (e.keyCode == esc) {
-        returnMenu();
+        returnMenu()
       }
     } else if (isInHostMenu) {
-      username = $("#hostUserInput").val();
+      username = $("#hostUserInput").val()
 
       if (e.keyCode == space) {
 
       } else if (e.keyCode == esc) {
-        returnMenu();
+        returnMenu()
       } else if (e.keyCode == enter) {
         // If the username input is filled out properly
         if (/^([A-Za-z0-9]{3,20})$/.test(username)) {
-          createGame();
-          return false;
+          createGame()
+          return false
         }
       }
     } else if (isInJoinMenu) {
-      username = $("#joinUserInput").val();
+      username = $("#joinUserInput").val()
+      gameID = $("#joinKeyInput").val()
 
       if (e.keyCode == space) {
 
       } else if (e.keyCode == esc) {
-        returnMenu();
+        returnMenu()
       } else if (e.keyCode == enter) {
 
-        if (e.target.id === "joinKeyInput" && /^([A-Za-z0-9]{6})$/.test($("#joinKeyInput").val())) {
-          return false;
+        // If the game ID or the username is valid, allow errors to show
+        if (e.target.id === "joinKeyInput" && /^([A-Za-z0-9]{6})$/.test(gameID)) {
+          return false
         } else if (e.target.id === "joinUserInput" && /^([A-Za-z0-9]{3,20})$/.test(username)) {
-          return false;
+          return false
         }
       }
     } else if (isInGameCreationWait) {
       if (e.keyCode == esc) {
-        // TODO returnMenu();
+        // TODO returnMenu()
       }
     } else if (isInLocalGame) {
       if (e.keyCode == esc && !inGame) {
-        returnMenu();
+        returnMenu()
       } else if (e.keyCode == space && !inGame) {
-        resetGame();
-        startGame();
+        resetGame()
+        startGame()
       }
 
       // If the players can shoot
@@ -241,24 +274,23 @@ $(document).ready('input').keydown(function (e) {
         // If the key is valid (and isn't space)
         if (e.keyCode != space && e.keyCode != esc && $.inArray(e.keyCode,
             downKeys) == -1) {
-          downKeys.push(e.keyCode);
+          downKeys.push(e.keyCode)
           // gets the name of the key
-          var str = String.fromCharCode(e.keyCode);
+          var str = String.fromCharCode(e.keyCode)
           // If they shot too early
           if (preShot) {
-            addItemToList("lFailList", str);
+            addItemToList("lFailList", str)
           } else { // Else, they shot in time
-            addItemToList("lWinList", str + ": " + (Date.now() - shootTime) +
-              " ms");
-            winCount++;
+            addItemToList("lWinList", str + ": " + (Date.now() - shootTime) + " ms")
+            winCount++
           }
         }
       }
     }
   }
-});
+})
 
-var preventKeyPress = false;
+var preventKeyPress = false
 
 
 
@@ -267,45 +299,45 @@ var preventKeyPress = false;
 
 
 function gotoHostMenu() {
-  isInHostMenu = true;
-  isOnlineMenu = false;
+  isInHostMenu = true
+  isOnlineMenu = false
 
-  $("#pEnterText").stop().fadeIn(fade);
+  $("#pEnterText").stop().fadeIn(fade)
   $("#hostForm").fadeIn(fade, function () {
-    $("#hostUserInput").focus();
-  });
-  $("#hostUserInput").val(username);
+    $("#hostUserInput").focus()
+  })
+  $("#hostUserInput").val(username)
 
-  $("#kLeftMenu").fadeOut(fade);
-  $("#kRightMenu").fadeOut(fade);
-  $("#kDownMenu").fadeOut(fade);
-  $("#pJoin").stop().fadeOut(fade);
-  $("#pHost").stop().fadeOut(fade);
-  $("#pJoinRandom").stop().fadeOut(fade);
+  $("#kLeftMenu").fadeOut(fade)
+  $("#kRightMenu").fadeOut(fade)
+  $("#kDownMenu").fadeOut(fade)
+  $("#pJoin").stop().fadeOut(fade)
+  $("#pHost").stop().fadeOut(fade)
+  $("#pJoinRandom").stop().fadeOut(fade)
 }
 
 function gotoJoinMenu() {
-  isInJoinMenu = true;
-  isOnlineMenu = false;
+  isInJoinMenu = true
+  isOnlineMenu = false
 
-  $("#pEnterText").stop().fadeIn(fade);
+  $("#pEnterText").stop().fadeIn(fade)
   $("#joinForm").fadeIn(fade, function () {
-    $("#joinUserInput").focus();
-  });
-  $("#joinUserInput").val(username);
+    $("#joinUserInput").focus()
+  })
+  $("#joinUserInput").val(username)
 
-  $("#kLeftMenu").fadeOut(fade);
-  $("#kRightMenu").fadeOut(fade);
-  $("#kDownMenu").fadeOut(fade);
-  $("#pJoin").stop().fadeOut(fade);
-  $("#pHost").stop().fadeOut(fade);
-  $("#pJoinRandom").stop().fadeOut(fade);
+  $("#kLeftMenu").fadeOut(fade)
+  $("#kRightMenu").fadeOut(fade)
+  $("#kDownMenu").fadeOut(fade)
+  $("#pJoin").stop().fadeOut(fade)
+  $("#pHost").stop().fadeOut(fade)
+  $("#pJoinRandom").stop().fadeOut(fade)
 }
 
 // Lets jquery objects get shoken from side to side
 // dir: should be -1 or 1 to specify the direction of the shake
 jQuery.fn.shake = function (dir) {
-  var pos = $(this).position();
+  var pos = $(this).position()
   $(this).animate({
     left: pos.left - (18 * dir)
   }, 10).animate({
@@ -314,122 +346,74 @@ jQuery.fn.shake = function (dir) {
     left: pos.left + (11 * dir)
   }, 10).animate({
     left: pos.left
-  }, 25);
-  return this;
+  }, 25)
+  return this
 }
 
-var hasFocus = true;
+var hasFocus = true
 
 $(window).focus(function () {
-  hasFocus = true;
-});
+  hasFocus = true
+})
 
 $(window).blur(function () {
-  hasFocus = false;
-});
-
-var createAllErrors = function () {
-  var form = $(this),
-    errorList = $("ul.errorMessages", form);
-
-  var showAllErrorMessages = function () {
-    errorList.empty();
-
-    // Find all invalid fields within the form.
-    var invalidFields = form.find(":invalid").each(function (index, node) {
-
-      // Find the field's corresponding label
-      var label = $("label[for=" + node.id + "] "),
-        // Opera incorrectly does not fill the validationMessage property.
-        message = node.validationMessage || 'Invalid value.';
-
-      errorList
-        .show()
-        .append("<li><span>" + label.html() + "</span> " + message + "</li>");
-    });
-  };
-
-  // Support Safari
-  form.on("submit", function (event) {
-    if (this.checkValidity && !this.checkValidity()) {
-      $(this).find(":invalid").first().focus();
-      event.preventDefault();
-    }
-  });
-
-  $("input[type=submit], button:not([type=button])", form)
-    .on("click", showAllErrorMessages);
-
-  $("input", form).on("keypress", function (event) {
-    var type = $(this).attr("type");
-    if (/date|email|month|number|search|tel|text|time|url|week/.test(type) &&
-      event.keyCode == 13) {
-      showAllErrorMessages();
-    }
-  });
-};
-
-$("form").each(createAllErrors);
+  hasFocus = false
+})
 
 // Upon loading, start the game
 $(document).ready(function () {
-  console.log('Game Loaded');
+  console.log('Game Loaded')
 
-  $("#hostForm").hide();
-  $("#joinForm").hide();
+  $("#hostForm").hide()
+  $("#joinForm").hide()
 
-  mainMenuEntranceAnimation();
-});
+  mainMenuEntranceAnimation()
+})
 
 function startGame() {
   inGame = true
-  doStartGameAnimation(postKeybaordGame);
+  doStartGameAnimation(postKeybaordGame)
 
   function postKeybaordGame() {
 
-    resetLists();
-    showLists();
+    resetLists()
+    showLists()
 
     // Allows players to shoot, but shooting too early will result in a pre-fire shot, therefore losing the game
-    canShoot = true;
-    preShot = true;
+    canShoot = true
+    preShot = true
 
     setTimeout(displayShoot, getShootDelay(0))
   }
 }
 
-const leftKeys = [192, 49, 50, 51, 52, 53, 54, 9,
-  81, 87, 69, 82, 84, 20, 65, 83, 68, 70, 71, 90, 88, 67, 86
-];
-const rightKeys = [55, 56, 57, 48, 189, 187, 8,
-  89, 85, 73, 79, 80, 219, 221, 72, 74, 75, 76, 186, 222, 220, 66, 78, 77,
-  188, 190, 191, 34, 33, 35, 36, 46
-];
-const space = 32;
-const esc = 27;
-const enter = 13;
+const leftKeys = [192, 49, 50, 51, 52, 53, 54, 9, 81, 87, 69, 82, 84, 20, 65, 83, 68, 70, 71, 90, 88, 67, 86]
+const rightKeys = [55, 56, 57, 48, 189, 187, 8, 89, 85, 73, 79, 80, 219, 221, 72, 74, 75, 76, 186, 222, 220, 66, 78, 77, 188, 190, 191, 34, 33, 35, 36, 46]
+const space = 32
+const esc = 27
+const enter = 13
 
 function isLeft(keyID) {
   for (i in leftKeys) {
     if (keyID == leftKeys[i]) {
-      return true;
+      return true
     }
   }
-  return false;
+  return false
 }
 
 function isRight(keyID) {
   for (i in rightKeys) {
     if (keyID == rightKeys[i]) {
-      return true;
+      return true
     }
   }
-  return false;
+  return false
 }
 
 function gotoLocalGame() {
-  isMainMenu = false;
-  isInLocalGame = true;
+  isMainMenu = false
+  isInLocalGame = true
 
   $("#pOffline").animate({
     left: 0,
@@ -439,7 +423,7 @@ function gotoLocalGame() {
   }, {
     duration: 800,
     queue: false
-  });
+  })
   $("#pMenuMultiplayer").stop().fadeOut(fade);
   $("#pOnline").stop().fadeOut(fade);
   $("#pOnlineDesc").stop().fadeOut(fade);
@@ -447,16 +431,16 @@ function gotoLocalGame() {
   $("#kLeftMenu").fadeOut({
     duration: fade,
     queue: false
-  });
+  })
   $("#kRightMenu").fadeOut({
     duration: fade,
     queue: false
-  });
+  })
   $("#kDownMenu").fadeOut({
     duration: fade,
     queue: false
   });
-  startGame();
+  startGame()
 }
 
 function gotoOnlineGameMenu() {
@@ -485,7 +469,7 @@ function gotoOnlineGameMenu() {
   }, {
     duration: 800,
     queue: false
-  });
+  })
   $("#kRightMenu").animate({
     top: "35%"
   }, {
@@ -496,7 +480,7 @@ function gotoOnlineGameMenu() {
   }, {
     duration: 800,
     queue: false
-  });
+  })
   $("#kDownMenu").stop().fadeIn({
     duration: fade,
     queue: false
@@ -505,11 +489,11 @@ function gotoOnlineGameMenu() {
   }, {
     duration: 800,
     queue: false
-  });
-  $("#pJoin").stop().fadeIn(fade);
-  $("#pHost").stop().fadeIn(fade);
-  $("#pJoinRandom").stop().fadeIn(fade);
-  $("#pEscText").css("right", 0).css("top", "11.5%").stop().fadeIn(fade);
+  })
+  $("#pJoin").stop().fadeIn(fade)
+  $("#pHost").stop().fadeIn(fade)
+  $("#pJoinRandom").stop().fadeIn(fade)
+  $("#pEscText").css("right", 0).css("top", "11.5%").stop().fadeIn(fade)
 }
 
 function mainMenuEntranceAnimation() {
@@ -517,13 +501,13 @@ function mainMenuEntranceAnimation() {
   function showText() {
     // For some reason you've gotta put this in here otherwise it'll break the animation when quickly going to the online menu
     if (isMainMenu || isInLocalGame) {
-      $("#pOffline").css("fontSize", "48px").css("top", "35%").css("left", "420px").fadeIn(800);
+      $("#pOffline").css("fontSize", "48px").css("top", "35%").css("left", "420px").fadeIn(800)
     }
     if (isMainMenu) {
       $("#pOnline").fadeIn({
         duration: 800,
         queue: false
-      });
+      })
       $("#pOnlineDesc").fadeIn(800);
       $("#pOfflineDesc").fadeIn(800);
 
@@ -534,15 +518,15 @@ function mainMenuEntranceAnimation() {
           }, 800).fadeOut({
             duration: 400,
             queue: false
-          });
+          })
 
           $("#kLeftMenu").animate({
             right: "200px"
-          }, 800);
+          }, 800)
 
           $("#kRightMenu").animate({
             left: "190px"
-          }, 800);
+          }, 800)
         }
       }
       setTimeout(spaceAnim, 600);
@@ -550,57 +534,57 @@ function mainMenuEntranceAnimation() {
   }
   setTimeout(showText, 300);
 
-  $("#pMenuMultiplayer").fadeIn(600);
+  $("#pMenuMultiplayer").fadeIn(600)
 
-  $("#kDownMenu").css("top", "50%").hide().fadeIn(600);
-  $("#kLeftMenu").css("right", "0px").hide().fadeIn(600);
-  $("#kRightMenu").css("left", "0px").hide().fadeIn(600);
+  $("#kDownMenu").css("top", "50%").hide().fadeIn(600)
+  $("#kLeftMenu").css("right", "0px").hide().fadeIn(600)
+  $("#kRightMenu").css("left", "0px").hide().fadeIn(600)
 }
 
 function addItemToList(listID, str) {
-  var ul = document.getElementById(listID);
-  var li = document.createElement("li");
-  li.appendChild(document.createTextNode(str));
-  ul.appendChild(li);
+  var ul = document.getElementById(listID)
+  var li = document.createElement("li")
+  li.appendChild(document.createTextNode(str))
+  ul.appendChild(li)
 
-  var dir = Math.random() >= 0.5 ? 1 : -1;
+  var dir = Math.random() >= 0.5 ? 1 : -1
 
-  $("#lFailList").shake(dir);
-  $("#lWinList").shake(dir);
-  $("#pShoot").shake(dir);
+  $("#lFailList").shake(dir)
+  $("#lWinList").shake(dir)
+  $("#pShoot").shake(dir)
 }
 
 function keyboardAnimation() {
   $("#kLeft").css("left", "-110%").show().animate({
     left: 0
   }, 1000, function () {
-    $('#kLeft').slideToggle();
-  });
+    $('#kLeft').slideToggle()
+  })
   $("#kRight").css("right", "-110%").show().animate({
     right: 0
   }, 1000, function () {
-    $('#kRight').slideToggle();
-  });
+    $('#kRight').slideToggle()
+  })
   $("#kDown").css("top", "110%").show().animate({
     top: "35%"
   }, 1000, function () {
     $('#kDown').slideToggle(1200);
-  });
+  })
 }
 
 function resetLists() {
-  $("#lWinList").css("fontSize", "48px");
-  $("#lWinList").css("top", "30%");
-  $("#lWinList").css("left", "550px");
-  $("#lFailList").css("fontSize", "48px");
-  $("#lFailList").css("top", "30%");
-  $("#lFailList").css("left", "-390px");
-  $("ul").empty();
+  $("#lWinList").css("fontSize", "48px")
+  $("#lWinList").css("top", "30%")
+  $("#lWinList").css("left", "550px")
+  $("#lFailList").css("fontSize", "48px")
+  $("#lFailList").css("top", "30%")
+  $("#lFailList").css("left", "-390px")
+  $("ul").empty()
 }
 
 function showLists() {
-  $("#lWinList").show();
-  $("#lFailList").show();
+  $("#lWinList").show()
+  $("#lFailList").show()
 }
 
 // Hides fail list and "SHOOT" text, focuses the win list in the center of the screen
@@ -610,16 +594,16 @@ function focusLists() {
   }, {
     duration: 1000,
     queue: false
-  });
+  })
   $('#lWinList').animate({
     top: "22%"
   }, {
     duration: 1000,
     queue: false
-  });
+  })
   $('#lWinList').animate({
     fontSize: "68px"
-  }, 1000);
+  }, 1000)
 
   $('#lFailList').animate({
     top: "110%"
@@ -627,17 +611,17 @@ function focusLists() {
   $("#lFailList").fadeOut({
     duration: fade,
     queue: false
-  });
+  })
 
   $('#pShoot').animate({
     top: "110%"
   }, 1000, function () {
     $("#pShoot").css("top", "45%");
-  });
+  })
   $("#pShoot").fadeOut({
     duration: fade,
     queue: false
-  });
+  })
 
   if (winCount == 0) {
     $("#pFinished").css("top", "45%");
@@ -669,23 +653,23 @@ function hideLists() {
   $("#pShoot").fadeOut(fade);
   $('#lWinList').animate({
     top: "110%"
-  }, 1000);
+  }, 1000)
   $("#lWinList").fadeOut({
     duration: fade,
     queue: false
-  });
+  })
   $("#pFinished").fadeOut({
     duration: fade,
     queue: false
   }).animate({
     top: "-50%"
-  }, 1000);
+  }, 1000)
   $("#pEscText").fadeOut({
     duration: fade,
     queue: false
   }).animate({
     top: "-50%"
-  }, 1000);
+  }, 1000)
 }
 
 // The max time it'll take to display "SHOOT"
@@ -704,56 +688,55 @@ function getShootDelay(minimum) {
   function randomNumberFromRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
-  return randomNumberFromRange(minimum, minimum + maxGameDelay);
+  return randomNumberFromRange(minimum, minimum + maxGameDelay)
 }
 
 function displayShoot() {
   if (isInLocalGame) {
-    $("#pShoot").show();
+    $("#pShoot").show()
 
     //document.getElementById("shootText").innerHTML = "SHOOT";
-    shootTime = Date.now();
-    preShot = false;
+    shootTime = Date.now()
+    preShot = false
 
-    setTimeout(postGame, maxShootTime);
+    setTimeout(postGame, maxShootTime)
   }
 }
 
 function doStartGameAnimation(method) {
-  keyboardAnimation();
-  setTimeout(readySteadyAnimation, 1200);
+  keyboardAnimation()
+  setTimeout(readySteadyAnimation, 1200)
 
   function readySteadyAnimation() {
-    $("#pReady").fadeIn(fade).delay(linger).fadeOut(fade);
-    $("#pSteady").delay(linger + (fade * 2)).fadeIn(fade).delay(linger).fadeOut(
-      fade);
-    $("#pOffline").delay(timoutMin - fade).fadeOut(fade);
+    $("#pReady").fadeIn(fade).delay(linger).fadeOut(fade)
+    $("#pSteady").delay(linger + (fade * 2)).fadeIn(fade).delay(linger).fadeOut(fade)
+    $("#pOffline").delay(timoutMin - fade).fadeOut(fade)
 
-    setTimeout(method, timoutMin);
+    setTimeout(method, timoutMin)
   }
 }
 
 function postGame() {
   if (inGame) {
-    inGame = false;
-    canShoot = false;
-    focusLists();
+    inGame = false
+    canShoot = false
+    focusLists()
   }
 }
 
 function resetGame() {
-  shootTime = 0;
-  inGame = false;
-  canShoot = false;
-  downKeys = [];
-  winCount = 0;
+  shootTime = 0
+  inGame = false
+  canShoot = false
+  downKeys = []
+  winCount = 0
 
-  hideLists();
+  hideLists()
 }
 
-var shootTime = 0;
-var inGame = false;
-var preShot = false;
-var canShoot = false;
-var downKeys = [];
-var winCount = 0;
+var shootTime = 0
+var inGame = false
+var preShot = false
+var canShoot = false
+var downKeys = []
+var winCount = 0
