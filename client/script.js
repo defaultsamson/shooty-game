@@ -12,6 +12,7 @@ var isInLocalGame = false
 var isShowingError = false
 var isInLobby = false
 
+var escToLeave = 3
 
 var ws
 const serverIP = "localhost:9060" // 192.168.1.146
@@ -193,7 +194,24 @@ function returnToHostMenu() {
 }
 
 function returnMenu() {
-  if (isShowingError) {
+  if (isInLobby) {
+    isInLobby = false
+    isMainMenu = true
+    ws.close()
+    $("#pEscText").stop().fadeOut(fade)
+    $("#pGameID").stop().fadeOut(fade)
+    $("#pLeave").stop().fadeOut(fade)
+    $("#pLobby").stop().fadeOut(fade)
+    $("#pPlayersTitle").stop().fadeOut(fade)
+    $("#lOnlinePlayerList").stop().fadeOut(fade)
+
+    if (isHosting) {
+      $("#pHostInstructions").stop().fadeOut(fade)
+    } else {
+      $("#pJoinInstructions").stop().fadeOut(fade)
+    }
+    mainMenuEntranceAnimation()
+  } else if (isShowingError) {
     $("#pErrorText").fadeOut(fade)
     isShowingError = false
     if (isInGameCreationWait) {
@@ -307,6 +325,17 @@ $(document).ready('input').keydown(function (e) {
     } else if (isInGameCreationWait) {
       if (e.keyCode == esc) {
         // TODO returnMenu()
+      }
+    } else if (isInLobby) {
+      if (e.keyCode == esc) {
+        // TODO upon starting of game, reset this
+        // inrement the leave game counter
+        escToLeave--
+        $("#pLeave").text("Press ESC " + escToLeave + " times to leave")
+        // If hit ESC enough times, Leave game
+        if (escToLeave <= 0) {
+          returnMenu()
+        }
       }
     } else if (isInLocalGame) {
       if (e.keyCode == esc && !inGame) {
@@ -593,8 +622,8 @@ function mainMenuEntranceAnimation() {
   $("#pMenuMultiplayer").fadeIn(600)
 
   $("#kDownMenu").css("top", "50%").hide().fadeIn(600)
-  $("#kLeftMenu").css("right", "0px").hide().fadeIn(600)
-  $("#kRightMenu").css("left", "0px").hide().fadeIn(600)
+  $("#kLeftMenu").css("top", "50%").css("right", "0px").hide().fadeIn(600)
+  $("#kRightMenu").css("top", "50%").css("left", "0px").hide().fadeIn(600)
 }
 
 function addItemToList(listID, str) {
