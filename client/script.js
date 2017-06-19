@@ -7,11 +7,48 @@ var isOnlineMenu = false
 var isInHostMenu = false
 var isInGameCreationWait = false
 var isInJoinMenu = false
+var isInGameJoinWait = false
 var isInLocalGame = false
 var isShowingError = false
+var isInLobby = false
+
 
 var ws
 const serverIP = "localhost:9060" // 192.168.1.146
+
+function packetLogic(json) {
+  switch (json.type) {
+    case "pong":
+      console.log("Pong")
+      break
+    case "lobby":
+      username = json.username
+      gameID = json.gameID
+      isHosting = json.isHosting
+
+      $("#pGameID").text("Game ID: " + gameID)
+
+      gotoLobby()
+      break
+    case "playerlist":
+      var playerNames = json.list
+      $("#lOnlinePlayerList").empty()
+
+      for (var i = 0; i < playerNames.length; i++) {
+        addItemToList("lOnlinePlayerList", playerNames[i])
+
+        // Don't let it go TOO offscreen c;
+        if (i > 20) break
+      }
+      if (isHosting) {
+        $("#pHostInstructions").text("Press space to play - (" + playerNames.length + " player" + (playerNames.length > 1 ? "s" : "") + ")")
+      } else {
+        $("#pJoinInstructions").text("Waiting for host to start the game - (" + playerNames.length + " player" + (playerNames.length > 1 ? "s" : "") + ")")
+      }
+
+      break
+  }
+}
 
 function createGame() {
   isInGameCreationWait = true
@@ -31,6 +68,7 @@ function createGame() {
     queue: false
   }).fadeOut(fade)
 
+  $("#pEscText").fadeOut(fade)
   $("#pConnectingText").fadeIn(fade)
 
   createClient()
@@ -56,19 +94,7 @@ function createClient() {
 
     // Switch packet types
     if ("type" in json) {
-      switch (json.type) {
-        case "pong":
-          console.log("Pong")
-          break
-        case "lobby":
-          username = json.username
-          gameID = json.gameID
-          isHosting = json.isHosting
-
-
-
-          break
-      }
+      packetLogic(json)
     } else {
       console.log("Error: No \"type\" field found in json object")
     }
@@ -109,6 +135,25 @@ function displayError() {
 
   $("#pErrorText").fadeIn(fade)
   $("#pEscText").fadeIn(fade)
+  $("#pConnectingText").stop().fadeOut(fade)
+}
+
+function gotoLobby() {
+  isInGameCreationWait = false
+  isInGameJoinWait = false
+  isInLobby = true
+
+  //$("#pEscText").stop().fadeIn(fade)
+  $("#pGameID").fadeIn(fade)
+  $("#pLeave").fadeIn(fade)
+  $("#pLobby").fadeIn(fade)
+  if (isHosting) {
+    $("#pHostInstructions").fadeIn(fade)
+  } else {
+    $("#pJoinInstructions").fadeIn(fade)
+  }
+  $("#pPlayersTitle").fadeIn(fade)
+  $("#lOnlinePlayerList").fadeIn(fade)
   $("#pConnectingText").stop().fadeOut(fade)
 }
 
@@ -282,8 +327,10 @@ $(document).ready('input').keydown(function (e) {
           // If they shot too early
           if (preShot) {
             addItemToList("lFailList", str)
+            shakeInGameText()
           } else { // Else, they shot in time
             addItemToList("lWinList", str + ": " + (Date.now() - shootTime) + " ms")
+            shakeInGameText()
             winCount++
           }
         }
@@ -366,6 +413,9 @@ $(window).blur(function () {
 $(document).ready(function () {
   console.log('Game Loaded')
 
+  $("#kLeft").hide();
+  $("#kRight").hide();
+  $("#kDown").hide();
   $("#hostForm").hide()
   $("#joinForm").hide()
   $("#dGithub").hide();
@@ -552,7 +602,9 @@ function addItemToList(listID, str) {
   var li = document.createElement("li")
   li.appendChild(document.createTextNode(str))
   ul.appendChild(li)
+}
 
+function shakeInGameText() {
   var dir = Math.random() >= 0.5 ? 1 : -1
 
   $("#lFailList").shake(dir)

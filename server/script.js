@@ -1,5 +1,5 @@
 const idLength = 6
-const idChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+const idChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var server = require('ws').Server
 var ws = new server({
@@ -18,7 +18,7 @@ ws.on('connection', function (so) {
     isHosting: false,
     hasCheckedIn: false
   })
-  console.log('Connection opened ' + so)
+  //console.log('Connection opened ' + so)
 
   so.onmessage = function (message) {
     //var senderIP = so.upgradeReq.connection.remoteAddress;
@@ -45,10 +45,10 @@ ws.on('connection', function (so) {
 
             if (json.isHosting) {
               // Create room
-              var id = generateID()
+              var id = generateSafeID()
               clientEntry.gameID = id
               games.push({
-                id: id,
+                gameID: id,
                 isInGame: false
               })
 
@@ -56,8 +56,9 @@ ws.on('connection', function (so) {
             } else {
               // Join room
               // If the key is valid, allow them to try and join a game
-              if (/^([A-Za-z0-9]{6})$/.test(json.gameID)) {
-                clientEntry.gameID = json.gameID
+              var id = json.gameID.toUpperCase()
+              if (/^([A-Z0-9]{6})$/.test(id)) {
+                clientEntry.gameID = id
               } else {
                 // Otherwise close the connection because they're hacking
                 so.close()
@@ -71,6 +72,8 @@ ws.on('connection', function (so) {
               gameID: clientEntry.gameID,
               isHosting: clientEntry.isHosting
             }))
+
+            updatePlayerList(clientEntry.gameID);
           } else {
             // Otherwise close the connection because they're hacking
             so.close()
@@ -87,24 +90,55 @@ ws.on('connection', function (so) {
   so.onclose = function (c, d) {
     removeSocketObjectFromClientList(so)
     cleanGames()
-    console.log('Disconnect ' + c + ' -- ' + d)
-  };
+  }
 })
 
 console.log('Server started');
 
+function updatePlayerList(gameID) {
+  var playerSockets = []
+  var playerNames = []
+  // For each client
+  for (var i = 0; i < clients.length; i++) {
+    // If the client is in this game
+    if (clients[i].gameID === gameID) {
+      // If they're the host, add them to the beginning of the array
+      if (clients[i].isHosting) {
+        playerNames.unshift(clients[i].username)
+        // Else add them to the end
+      } else {
+        playerNames.push(clients[i].username)
+      }
+
+      // Adds the client's socket for ease of sending the information later
+      playerSockets.push(clients[i].socket)
+    }
+  }
+
+  // For each client
+  for (var i = 0; i < playerSockets.length; i++) {
+    playerSockets[i].send(JSON.stringify({
+      type: "playerlist",
+      list: playerNames
+    }))
+  }
+}
+
 function cleanGames() {
   for (var i = 0; i < games.length; i++) {
     var hasPlayers = false
+    var id = games[i].gameID
     // Check all the games and see if there's any players in it
-    for (var i = 0; i < clients.length; i++) {
-      if (clients[i].gameID === games[i].gameID) {
+    for (var j = 0; j < clients.length; j++) {
+      if (clients[j].gameID === id) {
         hasPlayers = true
         break
       }
     }
+
     // If there's no players in a game, remove it from the list
     if (!hasPlayers) {
+      console.log("Removing game with ID: " + id)
       games.splice(i, 1)
     }
   }
@@ -127,6 +161,25 @@ function removeSocketObjectFromClientList(so) {
   }
 }
 
+// Generates an ID that no other game currently has
+function generateSafeID() {
+  var id
+  while (true) {
+    var badID = false
+    id = generateID()
+    for (var i = 0; i < games.length; i++) {
+      if (games[i].gameID === id) {
+        badID = true
+        break
+      }
+    }
+    if (!badID) {
+      return id
+    }
+  }
+}
+
+// Generates a random game ID
 function generateID() {
   var id = ""
   for (var i = 0; i < idLength; i++) {

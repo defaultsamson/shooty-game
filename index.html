@@ -80,7 +80,13 @@
     <img src="client/keyboard_space.png" alt="Keyboard" style="width:px;height:130px;">
   </div>
 
-  <p id="pLobby" class="ready" style="top: 8%;">Multiplayer Lobby</p>
+  <p id="pGameID" class="ready" style="top: 2%; right: 2%; font-size: 30px; text-align: right;">Game ID: BBBBBB</p>
+  <p id="pLeave" class="ready" style="top: 2%; left: 2%; font-size: 30px; text-align: left;">Press ESC 3 times to leave</p>
+
+  <p id="pLobby" class="ready" style="top: 8%">Multiplayer Lobby</p>
+  <p id="pHostInstructions" class="ready" style="top: 17%; font-size: 30px">Press space to play - (1 player)</p>
+  <p id="pJoinInstructions" class="ready" style="top: 17%; font-size: 30px">Waiting for host to start the game - (1 player)</p>
+  <ul id="lOnlinePlayerList" class="ready" style="top: 26%;font-size: 30px"></ul>
 
   <p id="pConnectingText" class="ready" style="top: 40%;">Connecting...</p>
   <p id="pConnectionClosed" class="ready" style="top: 40%;">Connection closed</p>
@@ -93,19 +99,19 @@
   <p id="pJoin" class="ready" style="top: 20%; right: 400px">Join Game</p>
   <p id="pHost" class="ready" style="top: 20%; left: 420px">Create Game</p>
   <p id="pJoinRandom" class="ready" style="top: 68%">Join Random Game</p>
-  <p id="pOnlineDesc" class="ready" style="top: 78%; right: 400px; font-size: 30px;">Verse other players in<br>online multiplayer</p>
-  <p id="pOfflineDesc" class="ready" style="top: 78%; left: 420px; font-size: 30px;">Challenge irl friends<br>on your keyboard</p>
+  <p id="pOnlineDesc" class="ready" style="top: 78%; right: 400px; font-size: 30px">Verse other players in<br>online multiplayer</p>
+  <p id="pOfflineDesc" class="ready" style="top: 78%; left: 420px; font-size: 30px">Challenge irl friends<br>on your keyboard</p>
 
   <div id="kLeft" class="pixelated" style="left: -110%;">
-    <img src="client/keyboard_left.png" alt="Keyboard" style="width:px;height:228px;">
+    <img src="client/keyboard_left.png" alt="Keyboard" style="width:px;height:228px">
   </div>
 
   <div id="kRight" class="pixelated" style="right: -110%;">
-    <img src="client/keyboard_right.png" alt="Keyboard" style="width:px;height:228px;">
+    <img src="client/keyboard_right.png" alt="Keyboard" style="width:px;height:228px">
   </div>
 
   <div id="kDown" class="pixelated" style="top: 110%">
-    <img src="client/keyboard_space.png" alt="Keyboard" style="width:px;height:228px;">
+    <img src="client/keyboard_space.png" alt="Keyboard" style="width:px;height:228px">
   </div>
 
   <p id="pHelp" class="ready" style="top: 8%;"><br>Press any key to shoot,<br>Fastest shooter wins,<br>Shoot too early and you're out!</p>
@@ -132,7 +138,7 @@
     </form>
 
     <form action="#" method="get">
-      <p id="readyKeyTitle" class="ready" style="display:inline;top:52%">Game Key</p><br>
+      <p id="readyKeyTitle" class="ready" style="display:inline;top:52%">Game ID</p><br>
       <input id="joinKeyInput" type="text" name="key" pattern="[A-Za-z0-9]{6}" maxlength="6" title="Six characters, letters and numbers only"
         required style="text-align: center;"></input><br>
     </form>
