@@ -14,7 +14,7 @@ ws.on('connection', function (so) {
   clients.push({
     socket: so,
     username: "Guest",
-    dank: "memes",
+    gameID: "",
     isHosting: false,
     hasCheckedIn: false
   })
@@ -66,14 +66,21 @@ ws.on('connection', function (so) {
               }
             }
 
-            so.send(JSON.stringify({
-              type: "lobby",
-              username: clientEntry.username,
-              gameID: clientEntry.gameID,
-              isHosting: clientEntry.isHosting
-            }))
+            if (gameExists(clientEntry.gameID)) {
+              so.send(JSON.stringify({
+                type: "lobby",
+                username: clientEntry.username,
+                gameID: clientEntry.gameID,
+                isHosting: clientEntry.isHosting
+              }))
 
-            updatePlayerList(clientEntry.gameID);
+              updatePlayerList(clientEntry.gameID);
+            } else {
+              so.send(JSON.stringify({
+                type: "error",
+                message: "No game with ID (" + clientEntry.gameID + ")"
+              }))
+            }
           } else {
             // Otherwise close the connection because they're hacking
             so.close()
@@ -88,7 +95,9 @@ ws.on('connection', function (so) {
   };
 
   so.onclose = function (c, d) {
+    var id = clientEntryFromSocket(so).gameID
     removeSocketObjectFromClientList(so)
+    updatePlayerList(id)
     cleanGames()
   }
 })
@@ -142,6 +151,15 @@ function cleanGames() {
       games.splice(i, 1)
     }
   }
+}
+
+function gameExists(id) {
+  for (var i = 0; i < games.length; i++) {
+    if (games[i].gameID === id) {
+      return true
+    }
+  }
+  return false
 }
 
 function clientEntryFromSocket(so) {

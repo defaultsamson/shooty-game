@@ -31,6 +31,7 @@ function packetLogic(json) {
 
       gotoLobby()
       break
+
     case "playerlist":
       var playerNames = json.list
       $("#lOnlinePlayerList").empty()
@@ -46,7 +47,10 @@ function packetLogic(json) {
       } else {
         $("#pJoinInstructions").text("Waiting for host to start the game - (" + playerNames.length + " player" + (playerNames.length > 1 ? "s" : "") + ")")
       }
+      break
 
+    case "error":
+      displayError(json.message)
       break
   }
 }
@@ -56,7 +60,26 @@ function createGame() {
   isInHostMenu = false
 
   $("#hostUserInput").blur() // Unfocuses the text field
-  $("#hostForm").stop().animate({
+
+  createClientGuiThings("#hostForm")
+  createClient()
+}
+
+function joinGame() {
+  isInGameJoinWait = true
+  isInJoinMenu = false
+
+  console.log("Joining Game " + gameID)
+
+  $("#joinUserInput").blur() // Unfocuses the text field
+  $("#joinKeyInput").blur() // Unfocuses the text field
+
+  createClientGuiThings("#joinForm")
+  createClient()
+}
+
+function createClientGuiThings(form) {
+  $(form).stop().animate({
     top: "110%"
   }, {
     duration: 800,
@@ -72,7 +95,8 @@ function createGame() {
   $("#pEscText").fadeOut(fade)
   $("#pConnectingText").fadeIn(fade)
 
-  createClient()
+  escToLeave = 3
+  $("#pLeave").text("Press ESC 3 times to leave")
 }
 
 function createClient() {
@@ -104,6 +128,8 @@ function createClient() {
   ws.onopen = function (evt) {
     console.log('Connection opened: ' + evt);
 
+    console.log("Is Joining Game? " + !isInGameCreationWait)
+
     ws.send(JSON.stringify({
       type: "login",
       username: username,
@@ -114,13 +140,13 @@ function createClient() {
 
   ws.onclose = function (evt) {
     console.log('Conenction Closed (' + evt.code + ')')
-    connectionClosed()
+    //connectionClosed()
   }
 
   ws.onerror = function (evt) {
     console.log('Error Occured (' + evt.code + ')')
     resetOnlineGame()
-    displayError()
+    displayError("Error with server connection")
   }
 }
 
@@ -131,11 +157,11 @@ function connectionClosed() {
   }
 }
 
-function displayError() {
+function displayError(message) {
   isShowingError = true
 
-  $("#pErrorText").fadeIn(fade)
-  $("#pEscText").fadeIn(fade)
+  $("#pErrorText").text(message).fadeIn(fade)
+  $("#pEscText").stop().fadeIn(fade)
   $("#pConnectingText").stop().fadeOut(fade)
 }
 
@@ -193,6 +219,25 @@ function returnToHostMenu() {
   $("#pConnectingText").fadeOut(fade)
 }
 
+function returnToJoinMenu() {
+  $("#joinForm").stop().animate({
+    top: "33%"
+  }, {
+    duration: 800,
+    queue: false
+  }).fadeIn(fade, function () {
+    $("#hostUserInput").focus()
+  })
+  $("#pEnterText").stop().animate({
+    top: "18.5%"
+  }, {
+    duration: 800,
+    queue: false
+  }).fadeIn(fade)
+
+  $("#pConnectingText").fadeOut(fade)
+}
+
 function returnMenu() {
   if (isInLobby) {
     isInLobby = false
@@ -218,6 +263,10 @@ function returnMenu() {
       isInGameCreationWait = false
       isInHostMenu = true
       returnToHostMenu()
+    } else if (isInGameJoinWait) {
+      isInGameJoinWait = false
+      isInJoinMenu = true
+      returnToJoinMenu()
     }
   } else if (isInGameCreationWait) {
     isInGameCreationWait = false
@@ -316,7 +365,10 @@ $(document).ready('input').keydown(function (e) {
       } else if (e.keyCode == enter) {
 
         // If the game ID or the username is valid, allow errors to show
-        if (e.target.id === "joinKeyInput" && /^([A-Za-z0-9]{6})$/.test(gameID)) {
+        if (/^([A-Za-z0-9]{6})$/.test(gameID) && /^([A-Za-z0-9]{3,20})$/.test(username)) {
+          joinGame()
+          return false
+        } else if (e.target.id === "joinKeyInput" && /^([A-Za-z0-9]{6})$/.test(gameID)) {
           return false
         } else if (e.target.id === "joinUserInput" && /^([A-Za-z0-9]{3,20})$/.test(username)) {
           return false
@@ -381,7 +433,7 @@ function gotoHostMenu() {
   isOnlineMenu = false
 
   $("#pEnterText").stop().fadeIn(fade)
-  $("#hostForm").fadeIn(fade, function () {
+  $("#hostForm").css("top", "40%").fadeIn(fade, function () {
     $("#hostUserInput").focus()
   })
   $("#hostUserInput").val(username)
@@ -399,7 +451,7 @@ function gotoJoinMenu() {
   isOnlineMenu = false
 
   $("#pEnterText").stop().fadeIn(fade)
-  $("#joinForm").fadeIn(fade, function () {
+  $("#joinForm").css("top", "33%").fadeIn(fade, function () {
     $("#joinUserInput").focus()
   })
   $("#joinUserInput").val(username)
