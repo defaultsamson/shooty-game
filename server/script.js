@@ -80,6 +80,7 @@ ws.on('connection', function (so) {
                 type: "error",
                 message: "No game with ID (" + clientEntry.gameID + ")"
               }))
+              so.close()
             }
           } else {
             // Otherwise close the connection because they're hacking
@@ -95,14 +96,37 @@ ws.on('connection', function (so) {
   };
 
   so.onclose = function (c, d) {
+    // Gets the game ID
     var id = clientEntryFromSocket(so).gameID
+    var host = clientEntryFromSocket(so).isHosting
+    // Removes the socket entry
     removeSocketObjectFromClientList(so)
+    // If the player who left was the host, assign a new host
+    if (host) {
+      assignNewHost(id)
+    }
+    // Then cleans up
     updatePlayerList(id)
     cleanGames()
   }
 })
 
 console.log('Server started');
+
+function assignNewHost(id) {
+  // Check all the games and see if there's any players in it
+  for (var j = 0; j < clients.length; j++) {
+    // If there's a player in the game
+    if (clients[j].gameID === id) {
+      // Assign them to be the new host
+      clients[j].isHosting = true
+      clients[j].socket.send(JSON.stringify({
+        type: "host"
+      }))
+      break
+    }
+  }
+}
 
 function updatePlayerList(gameID) {
   var playerSockets = []

@@ -52,6 +52,14 @@ function packetLogic(json) {
     case "error":
       displayError(json.message)
       break
+
+    case "host":
+      isHosting = true
+      if (isInLobby) {
+        $("#pHostInstructions").fadeIn(fade)
+        $("#pJoinInstructions").fadeOut(fade)
+      }
+      break
   }
 }
 
@@ -92,8 +100,8 @@ function createClientGuiThings(form) {
     queue: false
   }).fadeOut(fade)
 
-  $("#pEscText").fadeOut(fade)
-  $("#pConnectingText").fadeIn(fade)
+  $("#pEscText").stop().fadeOut(fade)
+  $("#pConnectingText").stop().fadeIn(fade)
 
   escToLeave = 3
   $("#pLeave").text("Press ESC 3 times to leave")
@@ -160,7 +168,7 @@ function connectionClosed() {
 function displayError(message) {
   isShowingError = true
 
-  $("#pErrorText").text(message).fadeIn(fade)
+  $("#pErrorText").text(message).stop().fadeIn(fade)
   $("#pEscText").stop().fadeIn(fade)
   $("#pConnectingText").stop().fadeOut(fade)
 }
@@ -216,7 +224,7 @@ function returnToHostMenu() {
     queue: false
   }).fadeIn(fade)
 
-  $("#pConnectingText").fadeOut(fade)
+  $("#pConnectingText").stop().fadeOut(fade)
 }
 
 function returnToJoinMenu() {
@@ -235,7 +243,7 @@ function returnToJoinMenu() {
     queue: false
   }).fadeIn(fade)
 
-  $("#pConnectingText").fadeOut(fade)
+  $("#pConnectingText").stop().fadeOut(fade)
 }
 
 function returnMenu() {
@@ -257,7 +265,7 @@ function returnMenu() {
     }
     mainMenuEntranceAnimation()
   } else if (isShowingError) {
-    $("#pErrorText").fadeOut(fade)
+    $("#pErrorText").stop().fadeOut(fade)
     isShowingError = false
     if (isInGameCreationWait) {
       isInGameCreationWait = false
@@ -327,7 +335,7 @@ $(document).ready('input').keydown(function (e) {
         gotoLocalGame()
       }
     } else if (isShowingError) {
-      if (e.keyCode == esc) {
+      if (e.keyCode == esc || e.keyCode == enter) {
         returnMenu()
       }
     } else if (isOnlineMenu) {
