@@ -16,83 +16,118 @@ ws.on('connection', function (so) {
     username: "Guest",
     gameID: "",
     isHosting: false,
-    hasCheckedIn: false
+    hasCheckedIn: false,
+    time: -1
   })
   //console.log('Connection opened ' + so)
 
   so.onmessage = function (message) {
-    //var senderIP = so.upgradeReq.connection.remoteAddress;
-    //console.log('Message Received (IP: ' + senderIP + ") " + message);
+    try {
+      //var senderIP = so.upgradeReq.connection.remoteAddress;
+      //console.log('Message Received (IP: ' + senderIP + ") " + message);
 
-    var json = JSON.parse(message.data)
+      var json = JSON.parse(message.data)
 
-    // Switch packet types
-    if ("type" in json) {
-      switch (json.type) {
-        case "ping":
-          so.send(JSON.stringify({
-            type: "pong"
-          }))
-          console.log("Ping")
-          break
-        case "login":
-          // If the username input is filled out properly
-          if (/^([A-Za-z0-9]{3,20})$/.test(json.username)) {
-            var clientEntry = clientEntryFromSocket(so)
-            clientEntry.username = json.username
-            clientEntry.isHosting = json.isHosting
-            clientEntry.hasCheckedIn = true
+      // Switch packet types
+      if ("type" in json) {
+        switch (json.type) {
+          case "ping":
+            so.send(JSON.stringify({
+              type: "pong"
+            }))
+            console.log("Ping")
+            break
+          case "login":
+            // If the username input is filled out properly
+            if (/^([A-Za-z0-9]{3,20})$/.test(json.username)) {
+              var clientEntry = clientEntryFromSocket(so)
+              clientEntry.username = json.username
+              clientEntry.isHosting = json.isHosting
 
-            if (json.isHosting) {
-              // Create room
-              var id = generateSafeID()
-              clientEntry.gameID = id
-              games.push({
-                gameID: id,
-                isInGame: false
-              })
-
-              console.log("Creating game with ID: " + id)
-            } else {
-              // Join room
-              // If the key is valid, allow them to try and join a game
-              var id = json.gameID.toUpperCase()
-              if (/^([A-Z0-9]{6})$/.test(id)) {
+              if (json.isHosting) {
+                // Create room
+                var id = generateSafeID()
                 clientEntry.gameID = id
+                clientEntry.hasCheckedIn = true
+                games.push({
+                  gameID: id,
+                  isInGame: false,
+                  hasShot: false
+                })
+
+                console.log("Creating game with ID: " + id)
               } else {
-                // Otherwise close the connection because they're hacking
+                // Join room
+                // If the key is valid, allow them to try and join a game
+                var id = json.gameID.toUpperCase()
+                if (/^([A-Z0-9]{6})$/.test(id)) {
+                  clientEntry.gameID = id
+                } else {
+                  // Otherwise close the connection because they're hacking
+                  so.send(JSON.stringify({
+                    type: "error",
+                    message: "Trying to crash me, are you?"
+                  }))
+                  so.close()
+                  return
+                }
+              }
+
+              if (gameExists(clientEntry.gameID)) {
+                clientEntry.hasCheckedIn = true
+
+                so.send(JSON.stringify({
+                  type: "lobby",
+                  username: clientEntry.username,
+                  gameID: clientEntry.gameID,
+                  isHosting: clientEntry.isHosting
+                }))
+
+                updatePlayerList(clientEntry.gameID);
+              } else {
+                so.send(JSON.stringify({
+                  type: "error",
+                  message: "No game with ID (" + clientEntry.gameID + ")"
+                }))
                 so.close()
                 return
               }
-            }
-
-            if (gameExists(clientEntry.gameID)) {
+            } else {
+              // Otherwise close the connection because they're hacking their name
               so.send(JSON.stringify({
-                type: "lobby",
-                username: clientEntry.username,
-                gameID: clientEntry.gameID,
-                isHosting: clientEntry.isHosting
+                type: "error",
+                message: "Nice try, no shit names please -u-"
               }))
+              so.close()
+              return
+            }
+            break
 
-              updatePlayerList(clientEntry.gameID);
+          case "start":
+            var clientEntry = clientEntryFromSocket(so)
+            if (clientEntry.isHosting) {
+              startGame(clientEntry.gameID)
             } else {
               so.send(JSON.stringify({
                 type: "error",
-                message: "No game with ID (" + clientEntry.gameID + ")"
+                message: "Aren't you a naughty little hacker c:"
               }))
               so.close()
+              return
             }
-          } else {
-            // Otherwise close the connection because they're hacking
-            so.close()
-            return
-          }
-          break
+            break
 
+          case "sh":
+            var clientEntry = clientEntryFromSocket(so)
+            if (clientEntry.hasCheckedIn && clientEntry.time < 0) {
+              clientEntry.time = json.time
+            }
+            break
+        }
+      } else {
+        console.log("Error: No \"type\" field found in json object")
       }
-    } else {
-      console.log("Error: No \"type\" field found in json object")
-    }
+    } catch (err) {}
   };
 
   so.onclose = function (c, d) {
@@ -113,8 +148,107 @@ ws.on('connection', function (so) {
 
 console.log('Server started');
 
+// The maximum game time that players are allowed to shoot in
+const maxShootTime = 1500;
+// The max time it'll take to display "SHOOT"
+const maxGameDelay = 6000;
+
+function getShootDelay(minimum) {
+  function randomNumberFromRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+  return randomNumberFromRange(minimum, minimum + maxGameDelay)
+}
+
+function startGame(id) {
+  var game
+  for (var i = 0; i < games.length; i++) {
+    if (games[i].gameID === id) {
+      game = games[i]
+      game.isInGame = true
+      break
+    }
+  }
+
+  var players = []
+
+  // Goes through all clients
+  for (var j = 0; j < clients.length; j++) {
+    // If there's a player in the game
+    if (clients[j].gameID === id) {
+      // Tell them that the game is starting
+      players.push(clients[j])
+      try {
+        clients[j].socket.send(JSON.stringify({
+          type: "start"
+        }))
+      } catch (err) {}
+    }
+  }
+
+  function shoot() {
+    function postShoot() {
+      game.isInGame = false
+      game.hasShot = false
+
+      var playerNames = []
+      var playerTimes = []
+
+      // Goes through all clients
+      for (var i = 0; i < players.length; i++) {
+        // If there's no players in the list, just push it
+        var placed = false
+        // Otherwise go through the list of players and
+        for (var j = 0; j < playerTimes.length; j++) {
+          // insert the player in the index of the first player found with a greater time
+          if (players[i].time < playerTimes[j]) {
+            playerNames.splice(j, 0, players[i].username)
+            playerTimes.splice(j, 0, players[i].time)
+            placed = true
+            break
+          }
+        }
+
+        if (!placed) {
+          playerNames.push(players[i].username)
+          playerTimes.push(players[i].time)
+        }
+        
+        // Resets the player's time for the next game
+        players[i].time = -1
+      }
+
+      // Goes through all clients
+      for (var j = 0; j < players.length; j++) {
+        try {
+          players[j].socket.send(JSON.stringify({
+            type: "scoreboard",
+            names: playerNames,
+            times: playerTimes
+          }))
+        } catch (err) {}
+      }
+    }
+
+    game.hasShot = true
+
+    // Goes through all clients
+    for (var j = 0; j < players.length; j++) {
+      try {
+        players[j].socket.send(JSON.stringify({
+          type: "sh"
+        }))
+      } catch (err) {}
+
+    }
+
+    setTimeout(postShoot, maxShootTime)
+  }
+  setTimeout(shoot, getShootDelay(1200 + 2000 + 2000))
+}
+
 function assignNewHost(id) {
-  // Check all the games and see if there's any players in it
+  // Goes through all clients
   for (var j = 0; j < clients.length; j++) {
     // If there's a player in the game
     if (clients[j].gameID === id) {

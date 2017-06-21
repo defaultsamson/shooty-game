@@ -9,10 +9,12 @@ var isInGameCreationWait = false
 var isInJoinMenu = false
 var isInGameJoinWait = false
 var isInLocalGame = false
+var isInOnlineGame = false
 var isShowingError = false
 var isInLobby = false
 
 var escToLeave = 3
+var onlineShot = false
 
 var ws
 const serverIP = "localhost:9060" // 192.168.1.146
@@ -58,6 +60,23 @@ function packetLogic(json) {
       if (isInLobby) {
         $("#pHostInstructions").fadeIn(fade)
         $("#pJoinInstructions").fadeOut(fade)
+      }
+      break
+
+    case "start":
+      isInOnlineGame = true
+      isInLobby = false
+      hideLobby()
+      startGame(true)
+      break
+
+    case "sh":
+      displayShoot()
+      break
+
+    case "scoreboard":
+      for (var i = 0; i < json.names.length; i++) {
+
       }
       break
   }
@@ -121,7 +140,7 @@ function createClient() {
   console.log('client created')
 
   ws.onmessage = function (message) {
-    console.log('Recieving message: \"' + message.data + '\"')
+    //console.log('Recieving message: \"' + message.data + '\"')
 
     var json = JSON.parse(message.data)
 
@@ -134,10 +153,6 @@ function createClient() {
   }
 
   ws.onopen = function (evt) {
-    console.log('Connection opened: ' + evt);
-
-    console.log("Is Joining Game? " + !isInGameCreationWait)
-
     ws.send(JSON.stringify({
       type: "login",
       username: username,
@@ -190,6 +205,14 @@ function gotoLobby() {
   $("#pPlayersTitle").fadeIn(fade)
   $("#lOnlinePlayerList").fadeIn(fade)
   $("#pConnectingText").stop().fadeOut(fade)
+}
+
+function hideLobby() {
+  $("#pLobby").fadeOut(fade)
+  $("#pHostInstructions").fadeOut(fade)
+  $("#pJoinInstructions").fadeOut(fade)
+  $("#pPlayersTitle").fadeOut(fade)
+  $("#lOnlinePlayerList").fadeOut(fade)
 }
 
 function resetOnlineGame() {
@@ -247,8 +270,9 @@ function returnToJoinMenu() {
 }
 
 function returnMenu() {
-  if (isInLobby) {
+  if (isInLobby || isInOnlineGame) {
     isInLobby = false
+    isInOnlineGame = false
     isMainMenu = true
     ws.close()
     $("#pEscText").stop().fadeOut(fade)
@@ -257,12 +281,11 @@ function returnMenu() {
     $("#pLobby").stop().fadeOut(fade)
     $("#pPlayersTitle").stop().fadeOut(fade)
     $("#lOnlinePlayerList").stop().fadeOut(fade)
+    $("#pShoot").stop().fadeOut(fade)
+    $("#pShootTime").stop().fadeOut(fade)
+    $("#pHostInstructions").stop().fadeOut(fade)
+    $("#pJoinInstructions").stop().fadeOut(fade)
 
-    if (isHosting) {
-      $("#pHostInstructions").stop().fadeOut(fade)
-    } else {
-      $("#pJoinInstructions").stop().fadeOut(fade)
-    }
     mainMenuEntranceAnimation()
   } else if (isShowingError) {
     $("#pErrorText").stop().fadeOut(fade)
@@ -322,6 +345,19 @@ function returnMenu() {
     mainMenuEntranceAnimation()
     isInLocalGame = false
     isMainMenu = true
+  }
+}
+
+function escapeCode(key) {
+  if (key == esc) {
+    // TODO upon starting of game, reset this
+    // inrement the leave game counter
+    escToLeave--
+    $("#pLeave").text("Press ESC " + escToLeave + " times to leave")
+    // If hit ESC enough times, Leave game
+    if (escToLeave <= 0) {
+      returnMenu()
+    }
   }
 }
 
@@ -387,29 +423,24 @@ $(document).ready('input').keydown(function (e) {
         // TODO returnMenu()
       }
     } else if (isInLobby) {
-      if (e.keyCode == esc) {
-        // TODO upon starting of game, reset this
-        // inrement the leave game counter
-        escToLeave--
-        $("#pLeave").text("Press ESC " + escToLeave + " times to leave")
-        // If hit ESC enough times, Leave game
-        if (escToLeave <= 0) {
-          returnMenu()
-        }
+      escapeCode(e.keyCode)
+      if (e.keyCode == space && isHosting) {
+        ws.send(JSON.stringify({
+          type: "start"
+        }))
       }
     } else if (isInLocalGame) {
       if (e.keyCode == esc && !inGame) {
         returnMenu()
       } else if (e.keyCode == space && !inGame) {
         resetGame()
-        startGame()
+        startGame(false)
       }
 
       // If the players can shoot
       if (canShoot) {
         // If the key is valid (and isn't space)
-        if (e.keyCode != space && e.keyCode != esc && $.inArray(e.keyCode,
-            downKeys) == -1) {
+        if (e.keyCode != space && e.keyCode != esc && $.inArray(e.keyCode, downKeys) == -1) {
           downKeys.push(e.keyCode)
           // gets the name of the key
           var str = String.fromCharCode(e.keyCode)
@@ -421,6 +452,37 @@ $(document).ready('input').keydown(function (e) {
             addItemToList("lWinList", str + ": " + (Date.now() - shootTime) + " ms")
             shakeInGameText()
             winCount++
+          }
+        }
+      }
+    } else if (isInOnlineGame) {
+      escapeCode(e.keyCode)
+
+      if (e.keyCode == space && !inGame) {
+
+      }
+
+      // If the players can shoot
+      if (canShoot) {
+        // If the key is valid (and isn't space)
+        if (!onlineShot) {
+          shakeInGameText()
+          onlineShot = true
+          if (preShot) {
+            ws.send(JSON.stringify({
+              type: "sh",
+              time: -1,
+            }))
+            $("#pShootTime").css("color", "red").text("Shot early!").show()
+          } else {
+            var time = (Date.now() - shootTime)
+
+            ws.send(JSON.stringify({
+              type: "sh",
+              time: time,
+            }))
+
+            $("#pShootTime").css("color", "white").text("Time: " + time + "ms").show()
           }
         }
       }
@@ -512,7 +574,7 @@ $(document).ready(function () {
   mainMenuEntranceAnimation()
 })
 
-function startGame() {
+function startGame(online) {
   inGame = true
   doStartGameAnimation(postKeybaordGame)
 
@@ -525,7 +587,9 @@ function startGame() {
     canShoot = true
     preShot = true
 
-    setTimeout(displayShoot, getShootDelay(0))
+    if (!online) {
+      setTimeout(displayShoot, getShootDelay(0))
+    }
   }
 }
 
@@ -582,8 +646,8 @@ function gotoLocalGame() {
   $("#kDownMenu").fadeOut({
     duration: fade,
     queue: false
-  });
-  startGame()
+  })
+  startGame(false)
 }
 
 function gotoOnlineGameMenu() {
@@ -696,8 +760,13 @@ function addItemToList(listID, str) {
 function shakeInGameText() {
   var dir = Math.random() >= 0.5 ? 1 : -1
 
-  $("#lFailList").shake(dir)
-  $("#lWinList").shake(dir)
+  if (isInLocalGame) {
+    $("#lFailList").shake(dir)
+    $("#lWinList").shake(dir)
+  } else {
+    $("#pShootTime").shake(dir)
+  }
+
   $("#pShoot").shake(dir)
 }
 
@@ -830,7 +899,6 @@ const maxShootTime = 1500;
 // The minimum time to wait before having the chance to display "SHOOT". This is to ensure that it doesn't say "SHOOT" while still displaying "Ready" or "Steady"
 const timoutMin = (linger * 2) + (fade * 4);
 
-
 function getShootDelay(minimum) {
   function randomNumberFromRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
@@ -839,13 +907,12 @@ function getShootDelay(minimum) {
 }
 
 function displayShoot() {
+  $("#pShoot").show()
+
+  shootTime = Date.now()
+  preShot = false
+
   if (isInLocalGame) {
-    $("#pShoot").show()
-
-    //document.getElementById("shootText").innerHTML = "SHOOT";
-    shootTime = Date.now()
-    preShot = false
-
     setTimeout(postGame, maxShootTime)
   }
 }

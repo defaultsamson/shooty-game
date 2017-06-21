@@ -64,24 +64,31 @@
       font-family: 'Arvo';
       font-size: 30px;
     }
+
+    .menuimage {
+      width: px;
+      height: 130px;
+    }
   </style>
 </head>
 
 <body>
   <div id="kLeftMenu" class="pixelated" style="top: 50%;">
-    <img src="client/keyboard_left.png" alt="Keyboard" style="width:px;height:130px;">
+    <img src="client/keyboard_left.png" class="menuimage" alt="Keyboard">
   </div>
 
   <div id="kRightMenu" class="pixelated" style="top: 50%;">
-    <img src="client/keyboard_right.png" alt="Keyboard" style="width:px;height:130px;">
+    <img src="client/keyboard_right.png" class="menuimage" alt="Keyboard">
   </div>
 
   <div id="kDownMenu" class="pixelated" style="top: 50%;">
-    <img src="client/keyboard_space.png" alt="Keyboard" style="width:px;height:130px;">
+    <img src="client/keyboard_space.png" class="menuimage" alt="Keyboard">
   </div>
 
-  <p id="pGameID" class="ready" style="top: 2%; left: 2%; font-size: 30px; text-align: left;">Game ID: BBBBBB</p>
   <p id="pLeave" class="ready" style="top: 2%; right: 2%; font-size: 30px; text-align: right;">Press ESC 3 times to leave</p>
+  <p id="pGameID" class="ready" style="top: 2%; left: 2%; font-size: 30px; text-align: left;">Game ID: BBBBBB</p>
+
+  <p id="pShootTime" class="ready" style="font-size: 30px; top: 53.2%;">Time: </p>
 
   <p id="pLobby" class="ready" style="top: 8%">Multiplayer Lobby</p>
   <p id="pHostInstructions" class="ready" style="top: 17%; font-size: 30px">Press space to play - (1 player)</p>
