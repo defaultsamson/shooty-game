@@ -17,7 +17,7 @@ var escToLeave = 3
 var onlineShot = false
 
 var ws
-const serverIP = "localhost:9060" // 192.168.1.146
+const serverIP = "shooty.us.to:9060" // 192.168.1.146
 
 function packetLogic(json) {
   switch (json.type) {
