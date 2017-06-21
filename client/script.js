@@ -71,6 +71,8 @@ function packetLogic(json) {
       isInLobby = false
       hideLobby()
       hideLists()
+      escToLeave = 3
+      $("#pLeave").text("Press ESC 3 times to leave")
       startGame(true)
       break
 
@@ -79,6 +81,8 @@ function packetLogic(json) {
       break
 
     case "scoreboard":
+      escToLeave = 3
+      $("#pLeave").text("Press ESC 3 times to leave")
       $("#lOnlinePlayerWinList").empty()
       for (var i = 0; i < json.names.length; i++) {
         addItemToList("lOnlinePlayerWinList", json.names[i] + ": " + json.times[i] + "ms")
@@ -312,6 +316,7 @@ function returnMenu() {
     isInOnlineGame = false
     isMainMenu = true
     ws.close()
+    hideLists()
     $("#pEscText").stop().fadeOut(fade)
     $("#pGameID").stop().fadeOut(fade)
     $("#pLeave").stop().fadeOut(fade)
@@ -322,6 +327,10 @@ function returnMenu() {
     $("#pShootTime").stop().fadeOut(fade)
     $("#pHostInstructions").stop().fadeOut(fade)
     $("#pJoinInstructions").stop().fadeOut(fade)
+    $("#pReady").stop().fadeOut(fade)
+    $("#pSteady").stop().fadeOut(fade)
+    $("#pShoot").stop().fadeOut(fade)
+    $("#pOffline").stop().fadeOut(fade)
 
     mainMenuEntranceAnimation()
   } else if (isShowingError) {
@@ -390,7 +399,7 @@ function escapeCode(key) {
     // TODO upon starting of game, reset this
     // inrement the leave game counter
     escToLeave--
-    $("#pLeave").text("Press ESC " + escToLeave + " times to leave")
+    $("#pLeave").text("Press ESC " + escToLeave + " time" + (escToLeave == 1 ? "" : "s") + " to leave")
     // If hit ESC enough times, Leave game
     if (escToLeave <= 0) {
       returnMenu()
@@ -746,11 +755,12 @@ function gotoOnlineGameMenu() {
 function mainMenuEntranceAnimation() {
 
   function showText() {
-    // For some reason you've gotta put this in here otherwise it'll break the animation when quickly going to the online menu
-    if (isMainMenu || isInLocalGame) {
-      $("#pOffline").css("fontSize", "48px").css("top", "35%").css("left", "420px").fadeIn(800)
-    }
+    //// For some reason you've gotta put this in here otherwise it'll break the animation when quickly going to the online menu
+    // if (isMainMenu || isInLocalGame) {
+    //   $("#pOffline").css("fontSize", "48px").css("top", "35%").css("left", "420px").fadeIn(800)
+    // }
     if (isMainMenu) {
+      $("#pOffline").stop().hide().css("fontSize", "48px").css("top", "35%").css("left", "420px").fadeIn(800)
       $("#pOnline").fadeIn({
         duration: 800,
         queue: false
@@ -975,11 +985,13 @@ function doStartGameAnimation(method) {
   setTimeout(readySteadyAnimation, 1200)
 
   function readySteadyAnimation() {
-    $("#pReady").fadeIn(fade).delay(linger).fadeOut(fade)
-    $("#pSteady").delay(linger + (fade * 2)).fadeIn(fade).delay(linger).fadeOut(fade)
-    $("#pOffline").delay(timoutMin - fade).fadeOut(fade)
+    if (!isMainMenu) {
+      $("#pReady").fadeIn(fade).delay(linger).fadeOut(fade)
+      $("#pSteady").delay(linger + (fade * 2)).fadeIn(fade).delay(linger).fadeOut(fade)
+      $("#pOffline").delay(timoutMin - fade).fadeOut(fade)
 
-    setTimeout(method, timoutMin)
+      setTimeout(method, timoutMin)
+    }
   }
 }
 
