@@ -61,12 +61,16 @@ function packetLogic(json) {
         $("#pHostInstructions").fadeIn(fade)
         $("#pJoinInstructions").fadeOut(fade)
       }
+
+      $("#pFinished").text("Press space to replay")
       break
 
     case "start":
+      onlineShot = false
       isInOnlineGame = true
       isInLobby = false
       hideLobby()
+      hideLists()
       startGame(true)
       break
 
@@ -75,9 +79,42 @@ function packetLogic(json) {
       break
 
     case "scoreboard":
+      $("#lOnlinePlayerWinList").empty()
       for (var i = 0; i < json.names.length; i++) {
+        addItemToList("lOnlinePlayerWinList", json.names[i] + ": " + json.times[i] + "ms")
 
+        if (i > 20) break
       }
+
+      $("#lOnlinePlayerWinList").fadeIn(fade)
+
+      if (isHosting) {
+        $("#pFinished").text("Press space to replay")
+      } else {
+        $("#pFinished").text("Waiting for host to replay")
+      }
+
+      if (json.names.length == 0) {
+        $("#pFinished").css("top", "45%");
+      } else {
+        $("#pFinished").css("top", "10%");
+      }
+      $("#pFinished").fadeIn(fade)
+
+      hideShoot()
+
+      $('#pShootTime').animate({
+        top: "110%"
+      }, 1000, function () {
+        $("#pShootTime").css("top", "53.2%");
+      })
+      $("#pShootTime").fadeOut({
+        duration: fade,
+        queue: false
+      })
+
+      canShoot = false
+      inGame = false
       break
   }
 }
@@ -140,7 +177,7 @@ function createClient() {
   console.log('client created')
 
   ws.onmessage = function (message) {
-    //console.log('Recieving message: \"' + message.data + '\"')
+    console.log('Recieving message: \"' + message.data + '\"')
 
     var json = JSON.parse(message.data)
 
@@ -459,11 +496,13 @@ $(document).ready('input').keydown(function (e) {
       escapeCode(e.keyCode)
 
       if (e.keyCode == space && !inGame) {
-
+        ws.send(JSON.stringify({
+          type: "start"
+        }))
       }
 
       // If the players can shoot
-      if (canShoot) {
+      if (canShoot && e.keyCode != space && e.keyCode != esc) {
         // If the key is valid (and isn't space)
         if (!onlineShot) {
           shakeInGameText()
@@ -789,6 +828,7 @@ function keyboardAnimation() {
 }
 
 function resetLists() {
+  $("#lOnlinePlayerWinList").css("top", "22%")
   $("#lWinList").css("fontSize", "48px")
   $("#lWinList").css("top", "30%")
   $("#lWinList").css("left", "550px")
@@ -829,15 +869,9 @@ function focusLists() {
     queue: false
   })
 
-  $('#pShoot').animate({
-    top: "110%"
-  }, 1000, function () {
-    $("#pShoot").css("top", "45%");
-  })
-  $("#pShoot").fadeOut({
-    duration: fade,
-    queue: false
-  })
+  hideShoot()
+
+  $("#pFinished").text("Press space to replay")
 
   if (winCount == 0) {
     $("#pFinished").css("top", "45%");
@@ -865,12 +899,31 @@ function focusLists() {
   }, 1000);*/
 }
 
+function hideShoot() {
+  $('#pShoot').animate({
+    top: "110%"
+  }, 1000, function () {
+    $("#pShoot").css("top", "45%");
+  })
+  $("#pShoot").fadeOut({
+    duration: fade,
+    queue: false
+  })
+}
+
 function hideLists() {
   $("#pShoot").fadeOut(fade);
   $('#lWinList').animate({
     top: "110%"
   }, 1000)
   $("#lWinList").fadeOut({
+    duration: fade,
+    queue: false
+  })
+  $('#lOnlinePlayerWinList').animate({
+    top: "110%"
+  }, 1000)
+  $("#lOnlinePlayerWinList").fadeOut({
     duration: fade,
     queue: false
   })

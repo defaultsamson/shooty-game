@@ -161,6 +161,8 @@ function getShootDelay(minimum) {
 }
 
 function startGame(id) {
+  console.log("Staryting game: " + id)
+
   var game
   for (var i = 0; i < games.length; i++) {
     if (games[i].gameID === id) {
@@ -196,24 +198,27 @@ function startGame(id) {
 
       // Goes through all clients
       for (var i = 0; i < players.length; i++) {
-        // If there's no players in the list, just push it
-        var placed = false
-        // Otherwise go through the list of players and
-        for (var j = 0; j < playerTimes.length; j++) {
-          // insert the player in the index of the first player found with a greater time
-          if (players[i].time < playerTimes[j]) {
-            playerNames.splice(j, 0, players[i].username)
-            playerTimes.splice(j, 0, players[i].time)
-            placed = true
-            break
+        // if the player got a time less than zero, do not include them on the scoreboard
+        if (players[i].time > 0) {
+          // If there's no players in the list, just push it
+          var placed = false
+          // Otherwise go through the list of players and
+          for (var j = 0; j < playerTimes.length; j++) {
+            // insert the player in the index of the first player found with a greater time
+            if (players[i].time < playerTimes[j]) {
+              playerNames.splice(j, 0, players[i].username)
+              playerTimes.splice(j, 0, players[i].time)
+              placed = true
+              break
+            }
+          }
+
+          if (!placed) {
+            playerNames.push(players[i].username)
+            playerTimes.push(players[i].time)
           }
         }
 
-        if (!placed) {
-          playerNames.push(players[i].username)
-          playerTimes.push(players[i].time)
-        }
-        
         // Resets the player's time for the next game
         players[i].time = -1
       }
