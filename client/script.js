@@ -2,6 +2,8 @@ var username = ""
 var gameID = ""
 var isHosting = false
 
+// Git test
+
 var isMainMenu = true
 var isOnlineMenu = false
 var isInHostMenu = false
