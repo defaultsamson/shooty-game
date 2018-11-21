@@ -19,7 +19,7 @@ var escToLeave = 3
 var onlineShot = false
 
 var ws
-const serverIP = "samsonclose.me:9060" // 192.168.1.146
+const serverIP = "samsonclo.se:9060" // 192.168.1.146
 
 function packetLogic(json) {
     switch (json.type) {
