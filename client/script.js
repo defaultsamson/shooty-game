@@ -507,6 +507,7 @@ $(document).ready('input').keydown(function (e) {
             escapeCode(e.keyCode)
 
             if (e.keyCode == space && !inGame && isHosting) {
+            	console.log("send start packet")
                 ws.send(JSON.stringify({
                     type: "start"
                 }))
