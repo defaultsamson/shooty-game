@@ -506,14 +506,14 @@ $(document).ready('input').keydown(function (e) {
         } else if (isInOnlineGame) {
             escapeCode(e.keyCode)
 
-            if (e.keyCode == space && !inGame) {
+            if (e.keyCode == space && !inGame && isHosting) {
                 ws.send(JSON.stringify({
                     type: "start"
                 }))
             }
 
             // If the players can shoot
-            if (canShoot && e.keyCode != space && e.keyCode != esc) {
+            if (canShoot && e.keyCode != esc) { // && e.keyCode != space
                 // If the key is valid (and isn't space)
                 if (!onlineShot) {
                     shakeInGameText()
