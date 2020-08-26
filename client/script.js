@@ -472,6 +472,7 @@ $(document).ready('input').keydown(function (e) {
             }
         } else if (isInLobby) {
             escapeCode(e.keyCode)
+            console.log("isHosting: " + isHosting)
             if (e.keyCode == space && isHosting) {
                 ws.send(JSON.stringify({
                     type: "start"
