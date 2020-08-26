@@ -177,7 +177,7 @@ function getShootDelay(minimum) {
 }
 
 function startGame(id) {
-    console.log("Staryting game: " + id)
+    console.log("Starting game: " + id)
 
     var game
     for (var i = 0; i < games.length; i++) {
