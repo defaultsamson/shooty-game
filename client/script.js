@@ -9,6 +9,7 @@ var isOnlineMenu = false
 var isInHostMenu = false
 var isInGameCreationWait = false
 var isInJoinMenu = false
+var isInRandomGameMenu = false
 var isInGameJoinWait = false
 var isInLocalGame = false
 var isInOnlineGame = false
@@ -312,6 +313,10 @@ function returnToJoinMenu() {
     $("#pConnectingText").stop().fadeOut(fade)
 }
 
+function returnToRandomGameMenu() {
+	// TODO
+}
+
 function returnMenu() {
     if (isInLobby || isInOnlineGame) {
         isInLobby = false
@@ -362,6 +367,12 @@ function returnMenu() {
         returnToOnlineMenu()
         $("#hostUserInput").blur() // Unfocuses the text field
         $("#hostForm").finish().fadeOut(fade)
+    } else if (isInRandomGameMenu) {
+        // TODO
+        isInRandomGameMenu = false
+        returnToOnlineMenu()
+        $("#randomUserInput").blur() // Unfocuses the text field
+        $("#randomForm").finish().fadeOut(fade)
     } else if (isOnlineMenu) {
         $("#kLeftMenu").animate({
             top: "50%"
@@ -428,7 +439,7 @@ $(document).ready('input').keydown(function (e) {
             } else if (isRight(e.keyCode)) {
                 gotoHostMenu()
             } else if (e.keyCode == space) {
-
+		gotoRandomGameMenu()
             } else if (e.keyCode == esc) {
                 returnMenu()
             }
@@ -463,6 +474,17 @@ $(document).ready('input').keydown(function (e) {
                 } else if (e.target.id === "joinKeyInput" && /^([A-Za-z0-9]{6})$/.test(gameID)) {
                     return false
                 } else if (e.target.id === "joinUserInput" && /^([A-Za-z0-9]{3,20})$/.test(username)) {
+                    return false
+                }
+            }
+        } else if (isInRandomGameMenu) {
+            username = $("#randomUserInput").val()
+            if (e.keyCode == esc) {
+                returnMenu()
+            } else if (e.keyCode == enter) {
+                // If the username input is filled out properly
+                if (/^([A-Za-z0-9]{3,20})$/.test(username)) {
+                    // TODO join random game
                     return false
                 }
             }
@@ -584,6 +606,25 @@ function gotoJoinMenu() {
     $("#pJoinRandom").stop().fadeOut(fade)
 }
 
+function gotoRandomGameMenu() {
+    // TODO
+    isInRandomGameMenu = true
+    isOnlineMenu = false
+    
+    $("#pEnterText").stop().fadeIn(fade)
+    $("#randomForm").css("top", "33%").fadeIn(fade, function () {
+        $("#randomUserInput").focus()
+    })
+    $("#randomUserInput").val(username)
+
+    $("#kLeftMenu").fadeOut(fade)
+    $("#kRightMenu").fadeOut(fade)
+    $("#kDownMenu").fadeOut(fade)
+    $("#pJoin").stop().fadeOut(fade)
+    $("#pHost").stop().fadeOut(fade)
+    $("#pJoinRandom").stop().fadeOut(fade)
+}
+
 // Lets jquery objects get shoken from side to side
 // dir: should be -1 or 1 to specify the direction of the shake
 jQuery.fn.shake = function (dir) {
@@ -619,6 +660,7 @@ $(document).ready(function () {
     $("#kDown").hide();
     $("#hostForm").hide()
     $("#joinForm").hide()
+    $("#randomForm").hide()
     $("#dGithub").hide();
 
     mainMenuEntranceAnimation()
