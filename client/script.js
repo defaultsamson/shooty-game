@@ -37,6 +37,13 @@ function packetLogic(json) {
 
             gotoLobby()
             break
+            
+        case "host":
+            isHosting = json.isHosting
+
+            $("#pHostInstructions").fadeIn(fade)
+            $("#pJoinInstructions").fadeOut(fade)
+            break
 
         case "playerlist":
             var playerNames = json.list

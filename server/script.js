@@ -374,8 +374,28 @@ function cleanGames() {
             }
         }
 
-        // If there's no players in a game, remove it from the list
-        if (!hasPlayers) {
+        // If it has players, check to make sure there's a host
+        if (hasPlayers) {
+            let firstPlayer = false
+            let host = false
+            for (let j in clients) {
+                if (clients[j].gameID == id) {
+                    if (!firstPlayer) firstPlayer = clients[j]
+                    if (clients[j].isHosting) {
+                        host = true
+                        break
+                    }
+                }
+            }
+            // If there's no host, set the first player as the host
+            if (!host) {
+                firstPlayer.isHosting = true
+                firstPlayer.socket.send(JSON.stringify({
+                    isHosting: true
+                }))
+            }
+        } else {
+            // If there's no players in a game, remove it from the list
             console.log("Removing game with ID: " + id)
             games.splice(i, 1)
         }
