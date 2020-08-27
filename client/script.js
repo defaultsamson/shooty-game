@@ -20,6 +20,8 @@ var isInLobby = false
 var escToLeave = 3
 var onlineShot = false
 
+var numPlayers = 0
+
 var ws
 const serverIP = "samsonclo.se:9060" // 192.168.1.146
 
@@ -39,41 +41,36 @@ function packetLogic(json) {
             break
             
         case "host":
+            console.log("isHosting1: " + isHosting)
             isHosting = json.isHosting
+            console.log("isHosting2: " + isHosting)
 
-            $("#pHostInstructions").fadeIn(fade)
-            $("#pJoinInstructions").fadeOut(fade)
+            $("#pInstructions").text("Press space to play - (" + numPlayers + " player" + (numPlayers > 1 ? "s" : "") + ")")
+            $("#pFinished").text("Press space to replay")
             break
 
         case "playerlist":
             var playerNames = json.list
+            numPlayers = playerNames.length
+
             $("#lOnlinePlayerList").empty()
 
-            for (var i = 0; i < playerNames.length; i++) {
+            for (var i = 0; i < numPlayers; i++) {
                 addItemToList("lOnlinePlayerList", playerNames[i])
 
                 // Don't let it go TOO offscreen c;
                 if (i > 20) break
             }
+            console.log("isHosting3: " + isHosting)
             if (isHosting) {
-                $("#pHostInstructions").text("Press space to play - (" + playerNames.length + " player" + (playerNames.length > 1 ? "s" : "") + ")")
+                $("#pInstructions").text("Press space to play - (" + numPlayers + " player" + (numPlayers > 1 ? "s" : "") + ")")
             } else {
-                $("#pJoinInstructions").text("Waiting for host to start the game - (" + playerNames.length + " player" + (playerNames.length > 1 ? "s" : "") + ")")
+                $("#pInstructions").text("Waiting for host to start the game - (" + numPlayers + " player" + (numPlayers > 1 ? "s" : "") + ")")
             }
             break
 
         case "error":
             displayError(json.message)
-            break
-
-        case "host":
-            isHosting = true
-            if (isInLobby) {
-                $("#pHostInstructions").fadeIn(fade)
-                $("#pJoinInstructions").fadeOut(fade)
-            }
-
-            $("#pFinished").text("Press space to replay")
             break
 
         case "start":
@@ -159,7 +156,7 @@ function joinGame() {
 
 function joinRandomGame() {
     isInGameRandomWait = true
-    isInRandomMenu = false
+    isInRandomGameMenu = false
     
     $("#randomUserInput").blur() // Unfocuses the text field
     
@@ -261,11 +258,7 @@ function gotoLobby() {
     $("#pGameID").fadeIn(fade)
     $("#pLeave").fadeIn(fade)
     $("#pLobby").fadeIn(fade)
-    if (isHosting) {
-        $("#pHostInstructions").fadeIn(fade)
-    } else {
-        $("#pJoinInstructions").fadeIn(fade)
-    }
+    $("#pInstructions").fadeIn(fade)
     $("#pPlayersTitle").fadeIn(fade)
     $("#lOnlinePlayerList").fadeIn(fade)
     $("#pConnectingText").stop().fadeOut(fade)
@@ -273,8 +266,7 @@ function gotoLobby() {
 
 function hideLobby() {
     $("#pLobby").fadeOut(fade)
-    $("#pHostInstructions").fadeOut(fade)
-    $("#pJoinInstructions").fadeOut(fade)
+    $("#pInstructions").fadeOut(fade)
     $("#pPlayersTitle").fadeOut(fade)
     $("#lOnlinePlayerList").fadeOut(fade)
 }
@@ -334,7 +326,22 @@ function returnToJoinMenu() {
 }
 
 function returnToRandomMenu() {
-	// TODO
+    $("#randomForm").stop().animate({
+        top: "33%"
+    }, {
+        duration: 800,
+        queue: false
+    }).fadeIn(fade, function () {
+        $("#randomUserInput").focus()
+    })
+    $("#pEnterText").stop().animate({
+        top: "18.5%"
+    }, {
+        duration: 800,
+        queue: false
+    }).fadeIn(fade)
+
+    $("#pConnectingText").stop().fadeOut(fade)
 }
 
 function returnMenu() {
@@ -352,8 +359,7 @@ function returnMenu() {
         $("#lOnlinePlayerList").stop().fadeOut(fade)
         $("#pShoot").stop().fadeOut(fade)
         $("#pShootTime").stop().fadeOut(fade)
-        $("#pHostInstructions").stop().fadeOut(fade)
-        $("#pJoinInstructions").stop().fadeOut(fade)
+        $("#pInstructions").stop().fadeOut(fade)
         $("#pReady").stop().fadeOut(fade)
         $("#pSteady").stop().fadeOut(fade)
         $("#pShoot").stop().fadeOut(fade)
@@ -373,7 +379,7 @@ function returnMenu() {
             returnToJoinMenu()
         } else if (isInGameRandomWait) {
             isInGameRandomWait = false
-            isInRandomMenu = true
+            isInRandomGameMenu = true
             returnToRandomMenu()
         }
     } else if (isInGameCreationWait) {
@@ -386,7 +392,7 @@ function returnMenu() {
         returnToJoinMenu()
     } else if (isInGameRandomWait) {
         isInGameRandomWait = false
-        isInRandomMenu = true
+        isInRandomGameMenu = true
         returnToRandomMenu()
     } else if (isInJoinMenu) {
         isInJoinMenu = false
@@ -440,7 +446,6 @@ function returnMenu() {
 
 function escapeCode(key) {
     if (key == esc) {
-        // TODO upon starting of game, reset this
         // inrement the leave game counter
         escToLeave--
         $("#pLeave").text("Press ESC " + escToLeave + " time" + (escToLeave == 1 ? "" : "s") + " to leave")

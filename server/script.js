@@ -207,8 +207,8 @@ wss.on('connection', function (so) {
             assignNewHost(id)
         }
         // Then cleans up
-        updatePlayerList(id)
         cleanGames()
+        updatePlayerList(id)
     }
 })
 
@@ -326,7 +326,8 @@ function assignNewHost(id) {
             // Assign them to be the new host
             clients[j].isHosting = true
             clients[j].socket.send(JSON.stringify({
-                type: "host"
+                type: "host",
+                isHosting: true
             }))
             break
         }
@@ -376,6 +377,7 @@ function cleanGames() {
 
         // If it has players, check to make sure there's a host
         if (hasPlayers) {
+            /* Already done with assignNewHost()
             let firstPlayer = false
             let host = false
             for (let j in clients) {
@@ -394,6 +396,7 @@ function cleanGames() {
                     isHosting: true
                 }))
             }
+            */
         } else {
             // If there's no players in a game, remove it from the list
             console.log("Removing game with ID: " + id)
