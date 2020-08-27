@@ -11,6 +11,7 @@ var isInGameCreationWait = false
 var isInJoinMenu = false
 var isInRandomGameMenu = false
 var isInGameJoinWait = false
+var isInGameRandomWait = false
 var isInLocalGame = false
 var isInOnlineGame = false
 var isShowingError = false
@@ -149,6 +150,16 @@ function joinGame() {
     createClient()
 }
 
+function joinRandomGame() {
+    isInGameRandomWait = true
+    isInRandomMenu = false
+    
+    $("#randomUserInput").blur() // Unfocuses the text field
+    
+    createClientGuiThings("#randomForm")
+    createClient()
+}
+
 function createClientGuiThings(form) {
     $(form).stop().animate({
         top: "110%"
@@ -201,6 +212,7 @@ function createClient() {
             type: "login",
             username: username,
             gameID: gameID,
+            isRandom: isInGameRandomWait,
             isHosting: isInGameCreationWait
         }))
     }
@@ -235,6 +247,7 @@ function displayError(message) {
 function gotoLobby() {
     isInGameCreationWait = false
     isInGameJoinWait = false
+    isInGameRandomWait = false
     isInLobby = true
 
     //$("#pEscText").stop().fadeIn(fade)
@@ -313,7 +326,7 @@ function returnToJoinMenu() {
     $("#pConnectingText").stop().fadeOut(fade)
 }
 
-function returnToRandomGameMenu() {
+function returnToRandomMenu() {
 	// TODO
 }
 
@@ -351,11 +364,23 @@ function returnMenu() {
             isInGameJoinWait = false
             isInJoinMenu = true
             returnToJoinMenu()
+        } else if (isInGameRandomWait) {
+            isInGameRandomWait = false
+            isInRandomMenu = true
+            returnToRandomMenu()
         }
     } else if (isInGameCreationWait) {
         isInGameCreationWait = false
         isInHostMenu = true
         returnToHostMenu()
+    } else if (isInGameJoinWait) {
+        isInGameJoinWait = false
+        isInJoinMenu = true
+        returnToJoinMenu()
+    } else if (isInGameRandomWait) {
+        isInGameRandomWait = false
+        isInRandomMenu = true
+        returnToRandomMenu()
     } else if (isInJoinMenu) {
         isInJoinMenu = false
         returnToOnlineMenu()
@@ -368,7 +393,6 @@ function returnMenu() {
         $("#hostUserInput").blur() // Unfocuses the text field
         $("#hostForm").finish().fadeOut(fade)
     } else if (isInRandomGameMenu) {
-        // TODO
         isInRandomGameMenu = false
         returnToOnlineMenu()
         $("#randomUserInput").blur() // Unfocuses the text field
@@ -484,7 +508,7 @@ $(document).ready('input').keydown(function (e) {
             } else if (e.keyCode == enter) {
                 // If the username input is filled out properly
                 if (/^([A-Za-z0-9]{3,20})$/.test(username)) {
-                    // TODO join random game
+                    joinRandomGame()
                     return false
                 }
             }
@@ -607,7 +631,6 @@ function gotoJoinMenu() {
 }
 
 function gotoRandomGameMenu() {
-    // TODO
     isInRandomGameMenu = true
     isOnlineMenu = false
     

@@ -22,8 +22,61 @@ var wss = new WebSocket.Server({
 const idLength = 6
 const idChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
+const MAX_RANDOM_PLAYERS = 20 // The most players allowed in a randomly created game
+
 var games = []
 var clients = []
+
+// Returns the number of players in a given game
+function playersInGame(gameID) {
+    let num = 0
+
+    for (let i in clients) {
+        if (clients[i].gameID == gameID) num++
+    }
+
+    return num
+}
+
+// Gets a game that was created by randomly joining. returns gameID
+function getRandomGame() {
+
+    let foundGame = false
+
+    for (let i in games) {
+        let game = games[i]
+        if (game.isRandom) {
+            let numPlayers = playersInGame(game.gameID)
+            if (numPlayers < MAX_RANDOM_PLAYERS) {
+                if (foundGame && foundGame.numPlayers >= numPlayers) {
+                    // Do nothing, only set a new foundGame if a game is found with more players
+                } else {
+                    foundGame = { numPlayers: numPlayers, gameID: game.gameID }
+                }
+            }
+        }
+    }
+
+    if (foundGame) return foundGame.gameID
+    // If we couldn't find a viable game, create a new one
+    else return createGame(true)
+}
+
+// returns the gameID
+function createGame(random) {
+	var id = generateSafeID()
+        
+        games.push({
+            gameID: id,
+            isRandom: random,
+            isInGame: false,
+            hasShot: false
+        })
+        
+        console.log("Creating game with ID: " + id)
+        
+        return id
+}
 
 wss.on('connection', function (so) {
 
@@ -62,16 +115,12 @@ wss.on('connection', function (so) {
 
                             if (json.isHosting) {
                                 // Create room
-                                var id = generateSafeID()
-                                clientEntry.gameID = id
-                                clientEntry.hasCheckedIn = true
-                                games.push({
-                                    gameID: id,
-                                    isInGame: false,
-                                    hasShot: false
-                                })
+                                clientEntry.gameID = createGame(false)
 
-                                console.log("Creating game with ID: " + id)
+                            } else if (json.isRandom) {
+                            	clientEntry.gameID = getRandomGame()
+                            	// If the client is hosting the game, then we can assume they've been added first
+                            	clientEntry.isHosting = playersInGame(clientEntry.gameID) <= 1
                             } else {
                                 // Join room
                                 // If the key is valid, allow them to try and join a game
@@ -89,6 +138,7 @@ wss.on('connection', function (so) {
                                 }
                             }
 
+                            //  After setting up the gameID...
                             if (gameExists(clientEntry.gameID)) {
                                 clientEntry.hasCheckedIn = true
 
@@ -112,7 +162,7 @@ wss.on('connection', function (so) {
                             // Otherwise close the connection because they're hacking their name
                             so.send(JSON.stringify({
                                 type: "error",
-                                message: "Nice try, no shit names please -u-"
+                                message: "Nice try, but that's not an acceptable name"
                             }))
                             so.close()
                             return
@@ -126,7 +176,7 @@ wss.on('connection', function (so) {
                         } else {
                             so.send(JSON.stringify({
                                 type: "error",
-                                message: "Aren't you a naughty little hacker c:"
+                                message: "You aren't the host, you're a naughty little hacker"
                             }))
                             so.close()
                             return
