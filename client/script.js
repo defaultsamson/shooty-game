@@ -9,7 +9,9 @@ var isOnlineMenu = false
 var isInHostMenu = false
 var isInGameCreationWait = false
 var isInJoinMenu = false
+var isInRandomGameMenu = false
 var isInGameJoinWait = false
+var isInGameRandomWait = false
 var isInLocalGame = false
 var isInOnlineGame = false
 var isShowingError = false
@@ -152,6 +154,16 @@ function joinGame() {
     createClient()
 }
 
+function joinRandomGame() {
+    isInGameRandomWait = true
+    isInRandomGameMenu = false
+    
+    $("#randomUserInput").blur() // Unfocuses the text field
+    
+    createClientGuiThings("#randomForm")
+    createClient()
+}
+
 function createClientGuiThings(form) {
     $(form).stop().animate({
         top: "110%"
@@ -204,6 +216,7 @@ function createClient() {
             type: "login",
             username: username,
             gameID: gameID,
+            isRandom: isInGameRandomWait,
             isHosting: isInGameCreationWait
         }))
     }
@@ -238,6 +251,7 @@ function displayError(message) {
 function gotoLobby() {
     isInGameCreationWait = false
     isInGameJoinWait = false
+    isInGameRandomWait = false
     isInLobby = true
 
     //$("#pEscText").stop().fadeIn(fade)
@@ -269,6 +283,7 @@ function returnToOnlineMenu() {
     $("#kDownMenu").finish().fadeIn(fade);
     $("#pJoin").stop().fadeIn(fade);
     $("#pHost").stop().fadeIn(fade);
+    $("#pJoinRandom").stop().fadeIn(fade);
     $("#pEnterText").finish().fadeOut(fade);
 }
 
@@ -299,6 +314,25 @@ function returnToJoinMenu() {
         queue: false
     }).fadeIn(fade, function () {
         $("#hostUserInput").focus()
+    })
+    $("#pEnterText").stop().animate({
+        top: "18.5%"
+    }, {
+        duration: 800,
+        queue: false
+    }).fadeIn(fade)
+
+    $("#pConnectingText").stop().fadeOut(fade)
+}
+
+function returnToRandomMenu() {
+    $("#randomForm").stop().animate({
+        top: "33%"
+    }, {
+        duration: 800,
+        queue: false
+    }).fadeIn(fade, function () {
+        $("#randomUserInput").focus()
     })
     $("#pEnterText").stop().animate({
         top: "18.5%"
@@ -343,6 +377,10 @@ function returnMenu() {
             isInGameJoinWait = false
             isInJoinMenu = true
             returnToJoinMenu()
+        } else if (isInGameRandomWait) {
+            isInGameRandomWait = false
+            isInRandomGameMenu = true
+            returnToRandomMenu()
         }
     } else if (isInGameCreationWait) {
         isInGameCreationWait = false
@@ -352,6 +390,10 @@ function returnMenu() {
         isInGameJoinWait = false
         isInJoinMenu = true
         returnToJoinMenu()
+    } else if (isInGameRandomWait) {
+        isInGameRandomWait = false
+        isInRandomGameMenu = true
+        returnToRandomMenu()
     } else if (isInJoinMenu) {
         isInJoinMenu = false
         returnToOnlineMenu()
@@ -363,6 +405,11 @@ function returnMenu() {
         returnToOnlineMenu()
         $("#hostUserInput").blur() // Unfocuses the text field
         $("#hostForm").finish().fadeOut(fade)
+    } else if (isInRandomGameMenu) {
+        isInRandomGameMenu = false
+        returnToOnlineMenu()
+        $("#randomUserInput").blur() // Unfocuses the text field
+        $("#randomForm").finish().fadeOut(fade)
     } else if (isOnlineMenu) {
         $("#kLeftMenu").animate({
             top: "50%"
@@ -384,6 +431,7 @@ function returnMenu() {
         $("#pOfflineDesc").stop().fadeIn(fade)
         $("#pJoin").stop().fadeOut(fade)
         $("#pHost").stop().fadeOut(fade)
+        $("#pJoinRandom").stop().fadeOut(fade)
         $("#pEscText").stop().fadeOut(fade)
 
         isOnlineMenu = false
@@ -426,6 +474,8 @@ $(document).ready('input').keydown(function (e) {
                 gotoJoinMenu()
             } else if (isRight(e.keyCode)) {
                 gotoHostMenu()
+            } else if (e.keyCode == space) {
+		gotoRandomGameMenu()
             } else if (e.keyCode == esc) {
                 returnMenu()
             }
@@ -460,6 +510,17 @@ $(document).ready('input').keydown(function (e) {
                 } else if (e.target.id === "joinKeyInput" && /^([A-Za-z0-9]{6})$/.test(gameID)) {
                     return false
                 } else if (e.target.id === "joinUserInput" && /^([A-Za-z0-9]{3,20})$/.test(username)) {
+                    return false
+                }
+            }
+        } else if (isInRandomGameMenu) {
+            username = $("#randomUserInput").val()
+            if (e.keyCode == esc) {
+                returnMenu()
+            } else if (e.keyCode == enter) {
+                // If the username input is filled out properly
+                if (/^([A-Za-z0-9]{3,20})$/.test(username)) {
+                    joinRandomGame()
                     return false
                 }
             }
@@ -560,6 +621,7 @@ function gotoHostMenu() {
     $("#kDownMenu").fadeOut(fade)
     $("#pJoin").stop().fadeOut(fade)
     $("#pHost").stop().fadeOut(fade)
+    $("#pJoinRandom").stop().fadeOut(fade)
 }
 
 function gotoJoinMenu() {
@@ -577,6 +639,25 @@ function gotoJoinMenu() {
     $("#kDownMenu").fadeOut(fade)
     $("#pJoin").stop().fadeOut(fade)
     $("#pHost").stop().fadeOut(fade)
+    $("#pJoinRandom").stop().fadeOut(fade)
+}
+
+function gotoRandomGameMenu() {
+    isInRandomGameMenu = true
+    isOnlineMenu = false
+    
+    $("#pEnterText").stop().fadeIn(fade)
+    $("#randomForm").css("top", "33%").fadeIn(fade, function () {
+        $("#randomUserInput").focus()
+    })
+    $("#randomUserInput").val(username)
+
+    $("#kLeftMenu").fadeOut(fade)
+    $("#kRightMenu").fadeOut(fade)
+    $("#kDownMenu").fadeOut(fade)
+    $("#pJoin").stop().fadeOut(fade)
+    $("#pHost").stop().fadeOut(fade)
+    $("#pJoinRandom").stop().fadeOut(fade)
 }
 
 // Lets jquery objects get shoken from side to side
@@ -614,6 +695,7 @@ $(document).ready(function () {
     $("#kDown").hide();
     $("#hostForm").hide()
     $("#joinForm").hide()
+    $("#randomForm").hide()
     $("#dGithub").hide();
 
     mainMenuEntranceAnimation()
@@ -745,6 +827,7 @@ function gotoOnlineGameMenu() {
     })
     $("#pJoin").stop().fadeIn(fade)
     $("#pHost").stop().fadeIn(fade)
+    $("#pJoinRandom").stop().fadeIn(fade)
     $("#pEscText").css("right", 0).css("top", "11.5%").stop().fadeIn(fade)
 }
 

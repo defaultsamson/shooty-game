@@ -105,6 +105,7 @@
   <p id="pOffline" class="ready" style="top: 35%; left: 420px">Local</p>
   <p id="pJoin" class="ready" style="top: 20%; right: 400px">Join Game</p>
   <p id="pHost" class="ready" style="top: 20%; left: 420px">Create Game</p>
+  <p id="pJoinRandom" class="ready" style="top: 68%">Join Random Game</p>
   <p id="pOnlineDesc" class="ready" style="top: 78%; right: 400px; font-size: 30px">Verse other players in<br>online multiplayer</p>
   <p id="pOfflineDesc" class="ready" style="top: 78%; left: 420px; font-size: 30px">Challenge irl friends<br>on your keyboard</p>
 
@@ -146,6 +147,14 @@
     <form action="#" method="get">
       <p id="readyKeyTitle" class="ready" style="display:inline;top:52%">Game ID</p><br>
       <input id="joinKeyInput" type="text" name="key" pattern="[A-Za-z0-9]{6}" maxlength="6" title="Six characters, letters and numbers only"
+        required style="text-align: center;"></input><br>
+    </form>
+  </div>
+  
+  <div id="randomForm" class="textInput" style="top:40%">
+    <form action="#" method="get">
+      <p class="ready" style="display:inline;top:0%">Username</p><br>
+      <input id="randomUserInput" type="text" name="username" pattern="[A-Za-z0-9]{3,20}" maxlength="20" title="3-20 characters, letters and numbers only"
         required style="text-align: center;"></input><br>
     </form>
   </div>
